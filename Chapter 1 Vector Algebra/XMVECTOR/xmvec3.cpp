@@ -1,15 +1,14 @@
-/*
 #include <windows.h> // for FLOAT definition
-#include <xnamath.h>
+#include <DirectXMath.h>
 #include <iostream>
 using namespace std;
 
 // Overload the  "<<" operators so that we can use cout to 
 // output XMVECTOR objects.
-ostream& operator<<(ostream& os, FXMVECTOR v)
+ostream& operator<<(ostream& os, DirectX::FXMVECTOR v)
 {
-	XMFLOAT3 dest;
-	XMStoreFloat3(&dest, v);
+	DirectX::XMFLOAT3 dest;
+	DirectX::XMStoreFloat3(&dest, v);
 
 	os << "(" << dest.x << ", " << dest.y << ", " << dest.z << ")";
 	return os;
@@ -20,51 +19,51 @@ int main()
 	cout.setf(ios_base::boolalpha);
 
 	// Check support for SSE2 (Pentium4, AMD K8, and above).
-	if( !XMVerifyCPUSupport() )
+	if( !DirectX::XMVerifyCPUSupport() )
 	{
 		cout << "xna math not supported" << endl;
 		return 0;
 	}
 
-	XMVECTOR n = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-	XMVECTOR u = XMVectorSet(1.0f, 2.0f, 3.0f, 0.0f);
-	XMVECTOR v = XMVectorSet(-2.0f, 1.0f, -3.0f, 0.0f);
-	XMVECTOR w = XMVectorSet(0.707f, 0.707f, 0.0f, 0.0f);
+	DirectX::XMVECTOR n = DirectX::XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	DirectX::XMVECTOR u = DirectX::XMVectorSet(1.0f, 2.0f, 3.0f, 0.0f);
+	DirectX::XMVECTOR v = DirectX::XMVectorSet(-2.0f, 1.0f, -3.0f, 0.0f);
+	DirectX::XMVECTOR w = DirectX::XMVectorSet(0.707f, 0.707f, 0.0f, 0.0f);
 	
 	// Vector addition: XMVECTOR operator + 
-	XMVECTOR a = u + v;
+	DirectX::XMVECTOR a = DirectX::XMVectorAdd(u, v);
 
 	// Vector subtraction: XMVECTOR operator - 
-	XMVECTOR b = u - v;
+	DirectX::XMVECTOR b = DirectX::XMVectorSubtract(u, v);
 
 	// Scalar multiplication: XMVECTOR operator * 
-	XMVECTOR c = 10.0f*u;
+	DirectX::XMVECTOR c = DirectX::XMVectorScale(u, 10.0f);
 
 	// ||u||
-	XMVECTOR L = XMVector3Length(u);
+	DirectX::XMVECTOR L = DirectX::XMVector3Length(u);
 
 	// d = u / ||u||
-	XMVECTOR d = XMVector3Normalize(u);
+	DirectX::XMVECTOR d = DirectX::XMVector3Normalize(u);
 
 	// s = u dot v
-	XMVECTOR s = XMVector3Dot(u, v);
+	DirectX::XMVECTOR s = DirectX::XMVector3Dot(u, v);
 
 	// e = u x v
-	XMVECTOR e = XMVector3Cross(u, v);
+	DirectX::XMVECTOR e = DirectX::XMVector3Cross(u, v);
 
 	// Find proj_n(w) and perp_n(w)
-	XMVECTOR projW;
-	XMVECTOR perpW;
-	XMVector3ComponentsFromNormal(&projW, &perpW, w, n);
+	DirectX::XMVECTOR projW;
+	DirectX::XMVECTOR perpW;
+	DirectX::XMVector3ComponentsFromNormal(&projW, &perpW, w, n);
 
 	// Does projW + perpW == w?
-	bool equal = XMVector3Equal(projW + perpW, w) != 0;
-	bool notEqual = XMVector3NotEqual(projW + perpW, w) != 0;
+	bool equal = DirectX::XMVector3Equal(DirectX::XMVectorAdd(projW, perpW), w) != 0;
+	bool notEqual = DirectX::XMVector3NotEqual(DirectX::XMVectorAdd(projW, perpW), w) != 0;
 
 	// The angle between projW and perpW should be 90 degrees.
-	XMVECTOR angleVec = XMVector3AngleBetweenVectors(projW, perpW);
-	float angleRadians = XMVectorGetX(angleVec);
-	float angleDegrees = XMConvertToDegrees(angleRadians);
+	DirectX::XMVECTOR angleVec = DirectX::XMVector3AngleBetweenVectors(projW, perpW);
+	float angleRadians = DirectX::XMVectorGetX(angleVec);
+	float angleDegrees = DirectX::XMConvertToDegrees(angleRadians);
 
 	cout << "u                   = " << u << endl;
 	cout << "v                   = " << v << endl;
@@ -84,4 +83,4 @@ int main()
 	cout << "angle               = " << angleDegrees << endl;
 
 	return 0;
-}*/
+}
