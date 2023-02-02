@@ -13,7 +13,7 @@
 #include <d3d11.h>
 #include "d3dx11Effect.h"
 #include <DirectXMath.h>
-#include <dxerr.h>
+#include <DirectXPackedVector.h>
 #include <cassert>
 #include <ctime>
 #include <algorithm>
@@ -28,24 +28,10 @@
 // Simple d3d error checker for book demos.
 //---------------------------------------------------------------------------------------
 
-#if defined(DEBUG) | defined(_DEBUG)
-	#ifndef HR
-	#define HR(x)                                              \
-	{                                                          \
-		HRESULT hr = (x);                                      \
-		if(FAILED(hr))                                         \
-		{                                                      \
-			DXTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
-		}                                                      \
-	}
-	#endif
-
-#else
-	#ifndef HR
-	#define HR(x) (x)
-	#endif
-#endif 
-
+#define HR(x) (x)
+#define D3DX11_DEFAULT            ((UINT) -1)
+#define D3DX11_FROM_FILE          ((UINT) -3)
+#define DXGI_FORMAT_FROM_FILE     ((DXGI_FORMAT) -3)
 
 //---------------------------------------------------------------------------------------
 // Convenience macro for releasing COM objects.
@@ -72,10 +58,7 @@ public:
 	///</summary>
 	static ID3D11ShaderResourceView* CreateTexture2DArraySRV(
 		ID3D11Device* device, ID3D11DeviceContext* context,
-		std::vector<std::wstring>& filenames,
-		DXGI_FORMAT format = DXGI_FORMAT_FROM_FILE,
-		UINT filter = D3DX11_FILTER_NONE, 
-		UINT mipFilter = D3DX11_FILTER_LINEAR);
+		std::vector<std::wstring>& filenames);
 
 	static ID3D11ShaderResourceView* CreateRandomTexture1DSRV(ID3D11Device* device);
 };
@@ -85,7 +68,7 @@ class TextHelper
 public:
 
 	template<typename T>
-	static D3DX11INLINE std::wstring ToString(const T& s)
+	static std::wstring ToString(const T& s)
 	{
 		std::wostringstream oss;
 		oss << s;
@@ -94,7 +77,7 @@ public:
 	}
 
 	template<typename T>
-	static D3DX11INLINE T FromString(const std::wstring& s)
+	static T FromString(const std::wstring& s)
 	{
 		T x;
 		std::wistringstream iss(s);
@@ -139,9 +122,9 @@ public:
 	///<summary>
 	/// Converts XMVECTOR to XMCOLOR, where XMVECTOR represents a color.
 	///</summary>
-	static D3DX11INLINE XMCOLOR ToXmColor(FXMVECTOR v)
+	static DirectX::PackedVector::XMCOLOR ToXmColor(DirectX::FXMVECTOR v)
 	{
-		XMCOLOR dest;
+		DirectX::PackedVector::XMCOLOR dest;
 		XMStoreColor(&dest, v);
 		return dest;
 	}
@@ -149,14 +132,14 @@ public:
 	///<summary>
 	/// Converts XMVECTOR to XMFLOAT4, where XMVECTOR represents a color.
 	///</summary>
-	static D3DX11INLINE XMFLOAT4 ToXmFloat4(FXMVECTOR v)
+	static DirectX::XMFLOAT4 ToXmFloat4(DirectX::FXMVECTOR v)
 	{
-		XMFLOAT4 dest;
+		DirectX::XMFLOAT4 dest;
 		XMStoreFloat4(&dest, v);
 		return dest;
 	}
 
-	static D3DX11INLINE UINT ArgbToAbgr(UINT argb)
+	static UINT ArgbToAbgr(UINT argb)
 	{
 		BYTE A = (argb >> 24) & 0xff;
 		BYTE R = (argb >> 16) & 0xff;

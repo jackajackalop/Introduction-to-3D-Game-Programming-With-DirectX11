@@ -3,13 +3,11 @@
 //***************************************************************************************
 
 #include "d3dUtil.h"
+#include <DDSTextureLoader.h>
 
 ID3D11ShaderResourceView* d3dHelper::CreateTexture2DArraySRV(
 		ID3D11Device* device, ID3D11DeviceContext* context,
-		std::vector<std::wstring>& filenames,
-		DXGI_FORMAT format,
-		UINT filter, 
-		UINT mipFilter)
+		std::vector<std::wstring>& filenames)
 {
 	//
 	// Load the texture elements individually from file.  These textures
@@ -23,24 +21,15 @@ ID3D11ShaderResourceView* d3dHelper::CreateTexture2DArraySRV(
 	std::vector<ID3D11Texture2D*> srcTex(size);
 	for(UINT i = 0; i < size; ++i)
 	{
-		D3DX11_IMAGE_LOAD_INFO loadInfo;
+		size_t maxsize = D3DX11_FROM_FILE;
+		D3D11_USAGE usage = D3D11_USAGE_STAGING;
+		unsigned int bindFlags = 0;
+		unsigned int cpuAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
+		unsigned int miscFlags = 0;
+		DirectX::DX11::DDS_LOADER_FLAGS loadFlags = DirectX::DX11::DDS_LOADER_DEFAULT;
 
-        loadInfo.Width  = D3DX11_FROM_FILE;
-        loadInfo.Height = D3DX11_FROM_FILE;
-        loadInfo.Depth  = D3DX11_FROM_FILE;
-        loadInfo.FirstMipLevel = 0;
-        loadInfo.MipLevels = D3DX11_FROM_FILE;
-        loadInfo.Usage = D3D11_USAGE_STAGING;
-        loadInfo.BindFlags = 0;
-        loadInfo.CpuAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
-        loadInfo.MiscFlags = 0;
-        loadInfo.Format = format;
-        loadInfo.Filter = filter;
-        loadInfo.MipFilter = mipFilter;
-		loadInfo.pSrcInfo  = 0;
-
-        HR(D3DX11CreateTextureFromFile(device, filenames[i].c_str(), 
-			&loadInfo, 0, (ID3D11Resource**)&srcTex[i], 0));
+        HR(CreateDDSTextureFromFileEx(device, filenames[i].c_str(), maxsize, usage, bindFlags, cpuAccessFlags, miscFlags, 
+			loadFlags, (ID3D11Resource**)&srcTex[i], nullptr, 0));
 	}
 
 	//
@@ -120,7 +109,7 @@ ID3D11ShaderResourceView* d3dHelper::CreateRandomTexture1DSRV(ID3D11Device* devi
 	// 
 	// Create the random data.
 	//
-	XMFLOAT4 randomValues[1024];
+	DirectX::XMFLOAT4 randomValues[1024];
 
 	for(int i = 0; i < 1024; ++i)
 	{
@@ -132,7 +121,7 @@ ID3D11ShaderResourceView* d3dHelper::CreateRandomTexture1DSRV(ID3D11Device* devi
 
     D3D11_SUBRESOURCE_DATA initData;
     initData.pSysMem = randomValues;
-	initData.SysMemPitch = 1024*sizeof(XMFLOAT4);
+	initData.SysMemPitch = 1024*sizeof(DirectX::XMFLOAT4);
     initData.SysMemSlicePitch = 0;
 
 	//
@@ -168,8 +157,11 @@ ID3D11ShaderResourceView* d3dHelper::CreateRandomTexture1DSRV(ID3D11Device* devi
 	return randomTexSRV;
 }
 
-void ExtractFrustumPlanes(XMFLOAT4 planes[6], CXMMATRIX M)
+void ExtractFrustumPlanes(DirectX::XMFLOAT4 planes[6], DirectX::CXMMATRIX T)
 {
+	DirectX::XMFLOAT4X4 M;
+	XMStoreFloat4x4(&M, T);
+
 	//
 	// Left
 	//
@@ -221,7 +213,7 @@ void ExtractFrustumPlanes(XMFLOAT4 planes[6], CXMMATRIX M)
 	// Normalize the plane equations.
 	for(int i = 0; i < 6; ++i)
 	{
-		XMVECTOR v = XMPlaneNormalize(XMLoadFloat4(&planes[i]));
+		DirectX::XMVECTOR v = DirectX::XMPlaneNormalize(XMLoadFloat4(&planes[i]));
 		XMStoreFloat4(&planes[i], v);
 	}
 }
