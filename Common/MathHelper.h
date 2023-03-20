@@ -9,6 +9,7 @@
 
 #include <Windows.h>
 #include <DirectXMath.h>
+#include <DirectXPackedVector.h>
 
 class MathHelper
 {

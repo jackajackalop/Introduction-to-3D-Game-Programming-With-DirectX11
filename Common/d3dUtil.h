@@ -120,7 +120,7 @@ class Convert
 {
 public:
 	///<summary>
-	/// Converts XMVECTOR to XMCOLOR, where XMVECTOR represents a color.
+	/// Converts DirectX::XMVECTOR to XMCOLOR, where DirectX::XMVECTOR represents a color.
 	///</summary>
 	static DirectX::PackedVector::XMCOLOR ToXmColor(DirectX::FXMVECTOR v)
 	{
@@ -130,9 +130,9 @@ public:
 	}
 
 	///<summary>
-	/// Converts XMVECTOR to XMFLOAT4, where XMVECTOR represents a color.
+	/// Converts DirectX::XMVECTOR to DirectX::XMFLOAT4, where DirectX::XMVECTOR represents a color.
 	///</summary>
-	static DirectX::XMFLOAT4 ToXmFloat4(DirectX::FXMVECTOR v)
+	static DirectX::XMFLOAT4 ToXMFLOAT4(DirectX::FXMVECTOR v)
 	{
 		DirectX::XMFLOAT4 dest;
 		XMStoreFloat4(&dest, v);
