@@ -189,21 +189,22 @@ void D3DApp::OnResize()
 
 	// Set the viewport transform.
 
-	/*mScreenViewport.TopLeftX = 0;
+	mScreenViewport.TopLeftX = 0;
 	mScreenViewport.TopLeftY = 0;
 	mScreenViewport.Width = static_cast<float>(mClientWidth);
 	mScreenViewport.Height = static_cast<float>(mClientHeight);
 	mScreenViewport.MinDepth = 0.0f;
-	mScreenViewport.MaxDepth = 1.0f;*/
+	mScreenViewport.MaxDepth = 1.0f;
 
 	// Set the viewport transform as a subrectangle of the buffer.
-
+/*
 	mScreenViewport.TopLeftX = static_cast<float>(mClientWidth / 3.0f);
 	mScreenViewport.TopLeftY = static_cast<float>(mClientHeight / 3.0);
 	mScreenViewport.Width = static_cast<float>(mClientWidth / 3.0f);
 	mScreenViewport.Height = static_cast<float>(mClientHeight / 3.0);
 	mScreenViewport.MinDepth = 0.0f;
 	mScreenViewport.MaxDepth = 1.0f;
+    */
 
 	md3dImmediateContext->RSSetViewports(1, &mScreenViewport);
 }

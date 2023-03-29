@@ -41,8 +41,8 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\yixin\Desktop\Introduction-to-3D-Game-Programming-With-DirectX11\Common;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\yixin\Desktop\Introduction-to-3D-Game-Programming-With-DirectX11\Common;$(LibraryPath)</LibraryPath>
+    <IncludePath>..\..\Common;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
