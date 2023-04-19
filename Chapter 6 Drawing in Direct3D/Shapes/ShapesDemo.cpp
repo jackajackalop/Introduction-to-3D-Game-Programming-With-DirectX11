@@ -46,9 +46,10 @@ private:
 	ID3D11Buffer* mVB;
 	ID3D11Buffer* mIB;
 
-	ID3DX11Effect* mFX;
-	ID3DX11EffectTechnique* mTech;
-	ID3DX11EffectMatrixVariable* mfxWorldViewProj;
+	ID3D11VertexShader* mVS;
+	ID3D11PixelShader* mPS;
+	ID3D11Buffer* mConstantBuffer;
+	ID3D10Blob* mVSBlob;
 
 	ID3D11InputLayout* mInputLayout;
 
@@ -104,8 +105,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
  
 
 ShapesApp::ShapesApp(HINSTANCE hInstance)
-: D3DApp(hInstance), mVB(0), mIB(0), mFX(0), mTech(0),
-  mfxWorldViewProj(0), mInputLayout(0), mWireframeRS(0),
+: D3DApp(hInstance), mVB(0), mIB(0), mInputLayout(0), mWireframeRS(0),
   mTheta(1.5f*MathHelper::Pi), mPhi(0.1f*MathHelper::Pi), mRadius(15.0f)
 {
 	mMainWndCaption = L"Shapes Demo";
@@ -140,9 +140,12 @@ ShapesApp::~ShapesApp()
 {
 	ReleaseCOM(mVB);
 	ReleaseCOM(mIB);
-	ReleaseCOM(mFX);
 	ReleaseCOM(mInputLayout);
 	ReleaseCOM(mWireframeRS);
+	ReleaseCOM(mVS);
+	ReleaseCOM(mPS);
+	ReleaseCOM(mConstantBuffer);
+	ReleaseCOM(mVSBlob);
 }
 
 bool ShapesApp::Init()
@@ -211,46 +214,97 @@ void ShapesApp::DrawScene()
 	DirectX::XMMATRIX proj  = XMLoadFloat4x4(&mProj);
 	DirectX::XMMATRIX viewProj = view*proj;
 
-    D3DX11_TECHNIQUE_DESC techDesc;
-    mTech->GetDesc( &techDesc );
-    for(UINT p = 0; p < techDesc.Passes; ++p)
-    {
-		// Draw the grid.
-		DirectX::XMMATRIX world = XMLoadFloat4x4(&mGridWorld);
-		mfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&(world*viewProj)));
-		mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-		md3dImmediateContext->DrawIndexed(mGridIndexCount, mGridIndexOffset, mGridVertexOffset);
+	// Draw the grid.
+	DirectX::XMMATRIX world = XMLoadFloat4x4(&mGridWorld);
+	world = DirectX::XMMatrixTranspose(world * viewProj);
 
-		// Draw the box.
-		world = XMLoadFloat4x4(&mBoxWorld);
-		mfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&(world*viewProj)));
-		mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-		md3dImmediateContext->DrawIndexed(mBoxIndexCount, mBoxIndexOffset, mBoxVertexOffset);
+	D3D11_MAPPED_SUBRESOURCE cbData;
+	md3dImmediateContext->Map(mConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
 
-		// Draw center sphere.
-		world = XMLoadFloat4x4(&mCenterSphere);
-		mfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&(world*viewProj)));
-		mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
+	memcpy(cbData.pData, &world, sizeof(world));
+
+	md3dImmediateContext->Unmap(mConstantBuffer, 0);
+
+	md3dImmediateContext->VSSetShader(mVS, nullptr, 0);
+	md3dImmediateContext->PSSetShader(mPS, nullptr, 0);
+
+	md3dImmediateContext->VSSetConstantBuffers(0, 1, &mConstantBuffer);
+
+	md3dImmediateContext->DrawIndexed(mGridIndexCount, mGridIndexOffset, mGridVertexOffset);
+
+	// Draw the box.
+	world = XMLoadFloat4x4(&mBoxWorld);
+	world = DirectX::XMMatrixTranspose(world * viewProj);
+
+	md3dImmediateContext->Map(mConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
+
+	memcpy(cbData.pData, &world, sizeof(world));
+
+	md3dImmediateContext->Unmap(mConstantBuffer, 0);
+
+	md3dImmediateContext->VSSetShader(mVS, nullptr, 0);
+	md3dImmediateContext->PSSetShader(mPS, nullptr, 0);
+
+	md3dImmediateContext->VSSetConstantBuffers(0, 1, &mConstantBuffer);
+
+	md3dImmediateContext->DrawIndexed(mBoxIndexCount, mBoxIndexOffset, mBoxVertexOffset);
+
+	// Draw center sphere.
+	world = XMLoadFloat4x4(&mCenterSphere);
+	world = DirectX::XMMatrixTranspose(world * viewProj);
+
+	md3dImmediateContext->Map(mConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
+
+	memcpy(cbData.pData, &world, sizeof(world));
+
+	md3dImmediateContext->Unmap(mConstantBuffer, 0);
+
+	md3dImmediateContext->VSSetShader(mVS, nullptr, 0);
+	md3dImmediateContext->PSSetShader(mPS, nullptr, 0);
+
+	md3dImmediateContext->VSSetConstantBuffers(0, 1, &mConstantBuffer);
+
+	md3dImmediateContext->DrawIndexed(mSphereIndexCount, mSphereIndexOffset, mSphereVertexOffset);
+
+	// Draw the cylinders.
+	for(int i = 0; i < 10; ++i)
+	{
+		world = XMLoadFloat4x4(&mCylWorld[i]);
+		world = DirectX::XMMatrixTranspose(world * viewProj);
+
+		md3dImmediateContext->Map(mConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
+
+		memcpy(cbData.pData, &world, sizeof(world));
+
+		md3dImmediateContext->Unmap(mConstantBuffer, 0);
+
+		md3dImmediateContext->VSSetShader(mVS, nullptr, 0);
+		md3dImmediateContext->PSSetShader(mPS, nullptr, 0);
+
+		md3dImmediateContext->VSSetConstantBuffers(0, 1, &mConstantBuffer);
+
+		md3dImmediateContext->DrawIndexed(mCylinderIndexCount, mCylinderIndexOffset, mCylinderVertexOffset);
+	}
+
+	// Draw the spheres.
+	for(int i = 0; i < 10; ++i)
+	{
+		world = XMLoadFloat4x4(&mSphereWorld[i]);
+		world = DirectX::XMMatrixTranspose(world * viewProj);
+
+		md3dImmediateContext->Map(mConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
+
+		memcpy(cbData.pData, &world, sizeof(world));
+
+		md3dImmediateContext->Unmap(mConstantBuffer, 0);
+
+		md3dImmediateContext->VSSetShader(mVS, nullptr, 0);
+		md3dImmediateContext->PSSetShader(mPS, nullptr, 0);
+
+		md3dImmediateContext->VSSetConstantBuffers(0, 1, &mConstantBuffer);
+
 		md3dImmediateContext->DrawIndexed(mSphereIndexCount, mSphereIndexOffset, mSphereVertexOffset);
-
-		// Draw the cylinders.
-		for(int i = 0; i < 10; ++i)
-		{
-			world = XMLoadFloat4x4(&mCylWorld[i]);
-			mfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&(world*viewProj)));
-			mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-			md3dImmediateContext->DrawIndexed(mCylinderIndexCount, mCylinderIndexOffset, mCylinderVertexOffset);
-		}
-
-		// Draw the spheres.
-		for(int i = 0; i < 10; ++i)
-		{
-			world = XMLoadFloat4x4(&mSphereWorld[i]);
-			mfxWorldViewProj->SetMatrix(reinterpret_cast<float*>(&(world*viewProj)));
-			mTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-			md3dImmediateContext->DrawIndexed(mSphereIndexCount, mSphereIndexOffset, mSphereVertexOffset);
-		}
-    }
+	}
 
 	HR(mSwapChain->Present(0, 0));
 }
@@ -421,21 +475,27 @@ void ShapesApp::CheckCompilationErrors(ID3D10Blob* compilationMsgs)
 
 void ShapesApp::BuildFX()
 {
-	std::ifstream fin("fx/color.fxo", std::ios::binary);
+	ID3D10Blob* compiledShader = 0;
+	ID3D10Blob* compilationMsgs = 0;
 
-	fin.seekg(0, std::ios_base::end);
-	int size = (int)fin.tellg();
-	fin.seekg(0, std::ios_base::beg);
-	std::vector<char> compiledShader(size);
+    HR(D3DCompileFromFile(L"FX/color.fx", 0, 0, "VS", "vs_5_0", 0,
+        0, &mVSBlob, &compilationMsgs));
 
-	fin.read(&compiledShader[0], size);
-	fin.close();
-	
-	HR(D3DX11CreateEffectFromMemory(&compiledShader[0], size, 
-		0, md3dDevice, &mFX));
+    CheckCompilationErrors(compilationMsgs);
 
-	mTech    = mFX->GetTechniqueByName("ColorTech");
-	mfxWorldViewProj = mFX->GetVariableByName("gWorldViewProj")->AsMatrix();
+    HR(md3dDevice->CreateVertexShader(mVSBlob->GetBufferPointer(), mVSBlob->GetBufferSize(), nullptr, &mVS));
+
+    HR(D3DCompileFromFile(L"FX/color.fx", 0, 0, "PS", "ps_5_0", 0,
+        0, &compiledShader, &compilationMsgs));
+
+    CheckCompilationErrors(compilationMsgs);
+
+    HR(md3dDevice->CreatePixelShader(compiledShader->GetBufferPointer(), compiledShader->GetBufferSize(), nullptr, &mPS));
+    ReleaseCOM(compiledShader);
+
+    // Create a constant buffer for the shader constants
+    D3D11_BUFFER_DESC constantBufferDesc = { sizeof(DirectX::XMMATRIX), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE };
+    HR(md3dDevice->CreateBuffer(&constantBufferDesc, nullptr, &mConstantBuffer));
 }
 
 void ShapesApp::BuildVertexLayout()
@@ -448,8 +508,6 @@ void ShapesApp::BuildVertexLayout()
 	};
 
 	// Create the input layout
-    D3DX11_PASS_DESC passDesc;
-    mTech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(md3dDevice->CreateInputLayout(vertexDesc, 2, passDesc.pIAInputSignature, 
-		passDesc.IAInputSignatureSize, &mInputLayout));
+	HR(md3dDevice->CreateInputLayout(vertexDesc, 2, mVSBlob->GetBufferPointer(),
+		mVSBlob->GetBufferSize(), &mInputLayout));
 }
