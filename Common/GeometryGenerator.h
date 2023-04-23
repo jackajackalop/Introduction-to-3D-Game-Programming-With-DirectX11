@@ -47,6 +47,11 @@ public:
 	};
 
 	///<summary>
+	/// Creates a series of points configured as shown in figure 5.13 centered at the origin with the given dimensions.
+	///</summary>
+	void CreatePoints(float width, float height, UINT primitiveType, MeshData& meshData);
+
+	///<summary>
 	/// Creates a box centered at the origin with the given dimensions.
 	///</summary>
 	void CreateBox(float width, float height, float depth, MeshData& meshData);
@@ -65,7 +70,7 @@ public:
 
 	///<summary>
 	/// Creates a cylinder parallel to the y-axis, and centered about the origin.  
-	/// The bottom and top radius can vary to form various cone shapes rather than true
+	/// The bottom and top radius can vary to form various cone Exercise3 rather than true
 	// cylinders.  The slices and stacks parameters control the degree of tessellation.
 	///</summary>
 	void CreateCylinder(float bottomRadius, float topRadius, float height, UINT sliceCount, UINT stackCount, MeshData& meshData);

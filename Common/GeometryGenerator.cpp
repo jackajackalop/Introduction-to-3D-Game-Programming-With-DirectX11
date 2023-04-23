@@ -5,6 +5,95 @@
 #include "GeometryGenerator.h"
 #include "MathHelper.h"
 
+void GeometryGenerator::CreatePoints(float width, float height, UINT primitiveType, MeshData& meshData)
+{
+	//
+	// Create the vertices.
+	//
+	Vertex v[9];
+
+	float wStart = -0.5f * width;
+	float hStart = -0.5f * height;
+	float wInterval = width / 8.0f;
+	float hInterval = height / 8.0f;
+	for (UINT i = 0; i < 9; ++i)
+	{
+		int sign = i % 2 == 0 ? 1 : -1;
+
+		v[i] = Vertex(wStart + wInterval * i, hStart + (hInterval * sign), 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+	}
+
+	meshData.Vertices.assign(&v[0], &v[9]);
+
+	if (primitiveType == 1)
+	{
+		//
+		// Create the indices.
+		//
+
+		UINT indices[8];
+
+		for (UINT j = 0; j < 8; ++j)
+		{
+			indices[j] = j;
+		}
+
+		meshData.Indices.assign(&indices[0], &indices[8]);
+	}
+	else if (primitiveType == 2)
+	{
+		//
+		// Create the indices.
+		//
+
+		UINT indices[8];
+
+		for (UINT j = 0; j < 8; ++j)
+		{
+			indices[j] = j;
+		}
+
+		meshData.Indices.assign(&indices[0], &indices[8]);
+	}
+	else if (primitiveType == 3)
+	{
+		//
+		// Create the indices.
+		//
+
+		UINT indices[9];
+
+		for (UINT j = 0; j < 9; ++j)
+		{
+			UINT vertexIndex = j;
+
+			if (j % 6 >= 3)
+			{
+				vertexIndex = 6 - (j - 2);
+			}
+
+			indices[j] = vertexIndex;
+		}
+
+ 		meshData.Indices.assign(&indices[0], &indices[9]);
+	}
+	else if (primitiveType == 4)
+	{
+		//
+		// Create the indices.
+		//
+
+		UINT indices[8];
+
+		for (UINT j = 0; j < 8; ++j)
+		{
+			indices[j] = j;
+		}
+
+		meshData.Indices.assign(&indices[0], &indices[8]);
+	}
+}
+
 void GeometryGenerator::CreateBox(float width, float height, float depth, MeshData& meshData)
 {
 	//
