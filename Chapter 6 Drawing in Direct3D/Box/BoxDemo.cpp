@@ -14,6 +14,7 @@
 #include "d3dApp.h"
 #include "MathHelper.h"
 #include <d3dcompiler.h>
+#include <DirectXPackedVector.h>
 
 #if defined(USE_FX)
 #include "d3dx11Effect.h"
@@ -22,7 +23,7 @@
 struct Vertex
 {
 	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT4 Color;
+	DirectX::PackedVector::XMCOLOR Color;
 };
 
 class BoxApp : public D3DApp
@@ -50,6 +51,7 @@ private:
 	ID3D11Buffer* mBoxVB;
 	ID3D11Buffer* mBoxCB;
 	ID3D11Buffer* mBoxIB;
+	ID3D11RasterizerState* mWireframeRS;
 
 #if defined(USE_FX)
 	ID3DX11Effect* mFX;
@@ -93,7 +95,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
  
 
 BoxApp::BoxApp(HINSTANCE hInstance)
-: D3DApp(hInstance), mBoxVB(0), mBoxCB(0), mBoxIB(0),
+: D3DApp(hInstance), mBoxVB(0), mBoxCB(0), mBoxIB(0), mWireframeRS(0),
 #if defined(USE_FX)
     mFX(0), mTech(0), mfxWorldViewProj(0), 
 #endif
@@ -116,6 +118,7 @@ BoxApp::~BoxApp()
 	ReleaseCOM(mBoxCB);
 	ReleaseCOM(mBoxIB);
 	ReleaseCOM(mInputLayout);
+	ReleaseCOM(mWireframeRS);
 
 #if defined(USE_FX)
     ReleaseCOM(mFX);
@@ -135,6 +138,15 @@ bool BoxApp::Init()
 	BuildGeometryBuffers();
 	BuildFX();
 	BuildVertexLayout();
+
+	D3D11_RASTERIZER_DESC wireframeDesc;
+	ZeroMemory(&wireframeDesc, sizeof(D3D11_RASTERIZER_DESC));
+	wireframeDesc.FillMode = D3D11_FILL_WIREFRAME;
+	wireframeDesc.CullMode = D3D11_CULL_NONE;
+	wireframeDesc.FrontCounterClockwise = false;
+	wireframeDesc.DepthClipEnable = true;
+
+	HR(md3dDevice->CreateRasterizerState(&wireframeDesc, &mWireframeRS));
 
 	return true;
 }
@@ -173,12 +185,14 @@ void BoxApp::DrawScene()
     md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	UINT vStride = sizeof(DirectX::XMFLOAT3);
-	UINT cStride = sizeof(DirectX::XMFLOAT4);
+	UINT cStride = sizeof(DirectX::PackedVector::XMCOLOR);
     UINT offset = 0;
 	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &vStride, &offset);
 	md3dImmediateContext->IASetVertexBuffers(1, 1, &mBoxCB, &cStride, &offset);
 	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
-	
+
+	md3dImmediateContext->RSSetState(mWireframeRS);
+
 	// Set constants
 	DirectX::XMMATRIX world = XMLoadFloat4x4(&mWorld);
 	DirectX::XMMATRIX view  = XMLoadFloat4x4(&mView);
@@ -264,6 +278,15 @@ void BoxApp::OnMouseMove(WPARAM btnState, int x, int y)
 	mLastMousePos.y = y;
 }
 
+static UINT ArgbToAbgr(DirectX::XMFLOAT4 argb)
+{
+	int A = (int)(argb.w * 255);
+	int R = (int)(argb.x * 255);
+	int G = (int)(argb.y * 255);
+	int B = (int)(argb.z * 255);
+	return (A << 24) | (B << 16) | (G << 8) | (R << 0);
+}
+
 void BoxApp::BuildGeometryBuffers()
 {
 	// Create vertex buffer
@@ -291,21 +314,21 @@ void BoxApp::BuildGeometryBuffers()
     HR(md3dDevice->CreateBuffer(&vbd, &vinitData, &mBoxVB));
 
 	// Create color buffer
-	DirectX::XMFLOAT4 colors[] =
+	DirectX::PackedVector::XMCOLOR colors[] =
 	{
-		DirectX::XMFLOAT4((const float*)&Colors::White),
-		DirectX::XMFLOAT4((const float*)&Colors::Black),
-		DirectX::XMFLOAT4((const float*)&Colors::Red),
-		DirectX::XMFLOAT4((const float*)&Colors::Green),
-		DirectX::XMFLOAT4((const float*)&Colors::Blue),
-		DirectX::XMFLOAT4((const float*)&Colors::Yellow),
-		DirectX::XMFLOAT4((const float*)&Colors::Cyan),
-		DirectX::XMFLOAT4((const float*)&Colors::Magenta)
+		ArgbToAbgr(DirectX::XMFLOAT4((const float*)&Colors::White)),
+		ArgbToAbgr(DirectX::XMFLOAT4((const float*)&Colors::Black)),
+		ArgbToAbgr(DirectX::XMFLOAT4((const float*)&Colors::Red)),
+		ArgbToAbgr(DirectX::XMFLOAT4((const float*)&Colors::Green)),
+		ArgbToAbgr(DirectX::XMFLOAT4((const float*)&Colors::Blue)),
+		ArgbToAbgr(DirectX::XMFLOAT4((const float*)&Colors::Yellow)),
+		ArgbToAbgr(DirectX::XMFLOAT4((const float*)&Colors::Cyan)),
+		ArgbToAbgr(DirectX::XMFLOAT4((const float*)&Colors::Magenta))
 	};
 
 	D3D11_BUFFER_DESC cbd;
 	cbd.Usage = D3D11_USAGE_IMMUTABLE;
-	cbd.ByteWidth = sizeof(DirectX::XMFLOAT4) * 8;
+	cbd.ByteWidth = sizeof(DirectX::PackedVector::XMCOLOR) * 8;
 	cbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	cbd.CPUAccessFlags = 0;
 	cbd.MiscFlags = 0;
@@ -417,7 +440,7 @@ void BoxApp::BuildVertexLayout()
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
+		{"COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
 	// Create the input layout
