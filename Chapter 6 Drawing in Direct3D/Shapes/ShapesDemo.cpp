@@ -163,6 +163,7 @@ bool ShapesApp::Init()
 	wireframeDesc.CullMode = D3D11_CULL_BACK;
 	wireframeDesc.FrontCounterClockwise = false;
 	wireframeDesc.DepthClipEnable = true;
+	wireframeDesc.ScissorEnable = true;
 
 	HR(md3dDevice->CreateRasterizerState(&wireframeDesc, &mWireframeRS));
 
@@ -202,6 +203,9 @@ void ShapesApp::DrawScene()
     md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	md3dImmediateContext->RSSetState(mWireframeRS);
+
+	D3D11_RECT rects = { 100, 100, 400, 400 };  
+	md3dImmediateContext->RSSetScissorRects(1, &rects);
 
 	UINT stride = sizeof(Vertex);
     UINT offset = 0;
@@ -406,12 +410,15 @@ void ShapesApp::BuildGeometryBuffers()
 	std::vector<Vertex> vertices(totalVertexCount);
 
 	DirectX::XMFLOAT4 black(0.0f, 0.0f, 0.0f, 1.0f);
+	DirectX::XMFLOAT4 red(1.0f, 0.0f, 0.0f, 1.0f);
+	DirectX::XMFLOAT4 blue(0.0f, 0.0f, 1.0f, 1.0f);
+	DirectX::XMFLOAT4 green(0.0f, 1.0f, 0.0f, 1.0f);
 
 	UINT k = 0;
 	for(size_t i = 0; i < box.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos   = box.Vertices[i].Position;
-		vertices[k].Color = black;
+		vertices[k].Color = red;
 	}
 
 	for(size_t i = 0; i < grid.Vertices.size(); ++i, ++k)
@@ -423,13 +430,13 @@ void ShapesApp::BuildGeometryBuffers()
 	for(size_t i = 0; i < sphere.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos   = sphere.Vertices[i].Position;
-		vertices[k].Color = black;
+		vertices[k].Color = blue;
 	}
 
 	for(size_t i = 0; i < cylinder.Vertices.size(); ++i, ++k)
 	{
 		vertices[k].Pos   = cylinder.Vertices[i].Position;
-		vertices[k].Color = black;
+		vertices[k].Color = green;
 	}
 
     D3D11_BUFFER_DESC vbd;
@@ -503,8 +510,8 @@ void ShapesApp::BuildVertexLayout()
 	// Create the vertex input layout.
 	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
 	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+		{"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}
 	};
 
 	// Create the input layout
