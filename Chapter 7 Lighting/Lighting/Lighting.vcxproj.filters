@@ -73,6 +73,7 @@
     <None Include="FX\LightHelper.fx">
       <Filter>FX</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="FX\Lighting.fx">
