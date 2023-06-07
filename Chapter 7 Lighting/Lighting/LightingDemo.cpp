@@ -38,6 +38,7 @@ public:
 	void OnMouseMove(WPARAM btnState, int x, int y);
 
 private:
+	void CheckCompilationErrors(ID3D10Blob* compilationMsgs);
 	float GetHillHeight(float x, float z)const;
 	DirectX::XMFLOAT3 GetHillNormal(float x, float z)const;
 	void BuildLandGeometryBuffers();
@@ -61,6 +62,8 @@ private:
 
 	ID3D11VertexShader* mVS;
 	ID3D11PixelShader* mPS;
+	PerObjectStruct perObjectStruct;
+	PerFrameStruct perFrameStruct;
 	ID3D11Buffer* perFrameBuffer;
 	ID3D11Buffer* perObjectBuffer;
 	ID3D10Blob* mVSBlob;
@@ -271,14 +274,17 @@ void LightingApp::DrawScene()
 	DirectX::XMMATRIX view = XMLoadFloat4x4(&mView);
 	DirectX::XMMATRIX proj = XMLoadFloat4x4(&mProj);
 	DirectX::XMMATRIX viewProj = view * proj;
+	perFrameStruct.DirLight = mDirLight;
+	perFrameStruct.PointLight = mPointLight;
+	perFrameStruct.SpotLight = mSpotLight;
+	perFrameStruct.EyePosW.x = mEyePosW.x;
+	perFrameStruct.EyePosW.y = mEyePosW.y;
+	perFrameStruct.EyePosW.z = mEyePosW.z;
 
 	// Set per frame constants.
 	D3D11_MAPPED_SUBRESOURCE cbData;
 	md3dImmediateContext->Map(perFrameBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
-	memcpy(cbData.pData, &mDirLight, sizeof(mDirLight));
-	memcpy(cbData.pData, &mPointLight, sizeof(mPointLight));
-	memcpy(cbData.pData, &mSpotLight, sizeof(mSpotLight));
-	memcpy(cbData.pData, &mEyePosW, sizeof(mEyePosW));
+	memcpy(cbData.pData, &perFrameStruct, sizeof(perFrameStruct));
 	md3dImmediateContext->Unmap(perFrameBuffer, 0);
 
 	//
@@ -291,12 +297,13 @@ void LightingApp::DrawScene()
 	DirectX::XMMATRIX world = XMLoadFloat4x4(&mLandWorld);
 	DirectX::XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
 	DirectX::XMMATRIX worldViewProj = world * view * proj;
+	perObjectStruct.World = world;
+	perObjectStruct.WorldInvTranspose = worldInvTranspose;
+	perObjectStruct.WorldViewProj = worldViewProj;
+	perObjectStruct.Material = mLandMat;
 
 	md3dImmediateContext->Map(perObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
-	memcpy(cbData.pData, &world, sizeof(world));
-	memcpy(cbData.pData, &worldInvTranspose, sizeof(worldInvTranspose));
-	memcpy(cbData.pData, &worldViewProj, sizeof(worldViewProj));
-	memcpy(cbData.pData, &mLandMat, sizeof(mLandMat));
+	memcpy(cbData.pData, &perObjectStruct, sizeof(perObjectStruct));
 	md3dImmediateContext->Unmap(perObjectBuffer, 0);
 
 	md3dImmediateContext->VSSetShader(mVS, nullptr, 0);
@@ -317,12 +324,13 @@ void LightingApp::DrawScene()
 	world = XMLoadFloat4x4(&mWavesWorld);
 	worldInvTranspose = MathHelper::InverseTranspose(world);
 	worldViewProj = world * view * proj;
+	perObjectStruct.World = world;
+	perObjectStruct.WorldInvTranspose = worldInvTranspose;
+	perObjectStruct.WorldViewProj = worldViewProj;
+	perObjectStruct.Material = mWavesMat;
 
 	md3dImmediateContext->Map(perObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
-	memcpy(cbData.pData, &world, sizeof(world));
-	memcpy(cbData.pData, &worldInvTranspose, sizeof(worldInvTranspose));
-	memcpy(cbData.pData, &worldViewProj, sizeof(worldViewProj));
-	memcpy(cbData.pData, &mWavesMat, sizeof(mWavesMat));
+	memcpy(cbData.pData, &perObjectStruct, sizeof(perObjectStruct));
 	md3dImmediateContext->Unmap(perObjectBuffer, 0);
 	md3dImmediateContext->VSSetConstantBuffers(1, 1, &perObjectBuffer);
 	md3dImmediateContext->DrawIndexed(3 * mWaves.TriangleCount(), 0, 0);
@@ -495,25 +503,39 @@ void LightingApp::BuildWaveGeometryBuffers()
     HR(md3dDevice->CreateBuffer(&ibd, &iinitData, &mWavesIB));
 }
 
+void LightingApp::CheckCompilationErrors(ID3D10Blob* compilationMsgs)
+{
+	// compilationMsgs can store errors or warnings.
+	if (compilationMsgs != 0)
+	{
+		MessageBoxA(0, (char*)compilationMsgs->GetBufferPointer(), 0, 0);
+		ReleaseCOM(compilationMsgs);
+	}
+}
+
 void LightingApp::BuildFX()
 {
 	ID3D10Blob* compiledShader = 0;
 	ID3D10Blob* compilationMsgs = 0;
 
-	HR(D3DCompileFromFile(L"FX/Lighting.fx", 0, 0, "VS", "vs_5_0", 0,
+	HR(D3DCompileFromFile(L"FX/Lighting.fx", 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_5_0", 0,
 		0, &mVSBlob, &compilationMsgs));
+
+	CheckCompilationErrors(compilationMsgs);
 
 	HR(md3dDevice->CreateVertexShader(mVSBlob->GetBufferPointer(), mVSBlob->GetBufferSize(), nullptr, &mVS));
 
-	HR(D3DCompileFromFile(L"FX/Lighting.fx", 0, 0, "PS", "ps_5_0", 0,
+	HR(D3DCompileFromFile(L"FX/Lighting.fx", 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_5_0", 0,
 		0, &compiledShader, &compilationMsgs));
+
+	CheckCompilationErrors(compilationMsgs);
 
 	HR(md3dDevice->CreatePixelShader(compiledShader->GetBufferPointer(), compiledShader->GetBufferSize(), nullptr, &mPS));
 	ReleaseCOM(compiledShader);
 
 	// Create a constant buffer for the shader constants
-	D3D11_BUFFER_DESC perObjectConstantBufferDesc = { sizeof(perObjectBuffer), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE };
-	D3D11_BUFFER_DESC perFrameConstantBufferDesc = { sizeof(perFrameBuffer), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE };
+	D3D11_BUFFER_DESC perObjectConstantBufferDesc = { sizeof(perObjectStruct), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE };
+	D3D11_BUFFER_DESC perFrameConstantBufferDesc = { sizeof(perFrameStruct), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE };
 	HR(md3dDevice->CreateBuffer(&perObjectConstantBufferDesc, nullptr, &perObjectBuffer));
 	HR(md3dDevice->CreateBuffer(&perFrameConstantBufferDesc, nullptr, &perFrameBuffer));
 }

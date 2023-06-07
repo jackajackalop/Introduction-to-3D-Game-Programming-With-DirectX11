@@ -73,4 +73,24 @@ struct Material
 	DirectX::XMFLOAT4 Reflect;
 };
 
+struct PerFrameStruct
+{
+	PerFrameStruct() { ZeroMemory(this, sizeof(this)); }
+
+	DirectionalLight DirLight;
+	PointLight  PointLight;
+	SpotLight SpotLight;
+	DirectX::XMFLOAT4 EyePosW;
+};
+
+struct PerObjectStruct
+{
+	PerObjectStruct() { ZeroMemory(this, sizeof(this)); }
+
+	DirectX::XMMATRIX World;
+	DirectX::XMMATRIX WorldInvTranspose;
+	DirectX::XMMATRIX WorldViewProj;
+	Material Material;
+};
+
 #endif // LIGHTHELPER_H
