@@ -295,8 +295,11 @@ void LightingApp::DrawScene()
 
 	// Set per object constants.
 	DirectX::XMMATRIX world = XMLoadFloat4x4(&mLandWorld);
+	world = DirectX::XMMatrixTranspose(world);
 	DirectX::XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
+	worldInvTranspose = DirectX::XMMatrixTranspose(worldInvTranspose);
 	DirectX::XMMATRIX worldViewProj = world * view * proj;
+	worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
 	perObjectStruct.World = world;
 	perObjectStruct.WorldInvTranspose = worldInvTranspose;
 	perObjectStruct.WorldViewProj = worldViewProj;
@@ -322,8 +325,11 @@ void LightingApp::DrawScene()
 
 	// Set per object constants.
 	world = XMLoadFloat4x4(&mWavesWorld);
+	world = DirectX::XMMatrixTranspose(world);
 	worldInvTranspose = MathHelper::InverseTranspose(world);
+	worldInvTranspose = DirectX::XMMatrixTranspose(worldInvTranspose);
 	worldViewProj = world * view * proj;
+	worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
 	perObjectStruct.World = world;
 	perObjectStruct.WorldInvTranspose = worldInvTranspose;
 	perObjectStruct.WorldViewProj = worldViewProj;
