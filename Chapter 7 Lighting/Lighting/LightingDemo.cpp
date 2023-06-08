@@ -295,14 +295,11 @@ void LightingApp::DrawScene()
 
 	// Set per object constants.
 	DirectX::XMMATRIX world = XMLoadFloat4x4(&mLandWorld);
-	world = DirectX::XMMatrixTranspose(world);
 	DirectX::XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
-	worldInvTranspose = DirectX::XMMatrixTranspose(worldInvTranspose);
 	DirectX::XMMATRIX worldViewProj = world * view * proj;
-	worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
-	perObjectStruct.World = world;
-	perObjectStruct.WorldInvTranspose = worldInvTranspose;
-	perObjectStruct.WorldViewProj = worldViewProj;
+	perObjectStruct.World = DirectX::XMMatrixTranspose(world);
+	perObjectStruct.WorldInvTranspose = DirectX::XMMatrixTranspose(worldInvTranspose);
+	perObjectStruct.WorldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
 	perObjectStruct.Material = mLandMat;
 
 	md3dImmediateContext->Map(perObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
@@ -314,6 +311,8 @@ void LightingApp::DrawScene()
 
 	md3dImmediateContext->VSSetConstantBuffers(0, 1, &perFrameBuffer);
 	md3dImmediateContext->VSSetConstantBuffers(1, 1, &perObjectBuffer);
+	md3dImmediateContext->PSSetConstantBuffers(0, 1, &perFrameBuffer);
+	md3dImmediateContext->PSSetConstantBuffers(1, 1, &perObjectBuffer);
 
 	md3dImmediateContext->DrawIndexed(mLandIndexCount, 0, 0);
 
@@ -325,20 +324,18 @@ void LightingApp::DrawScene()
 
 	// Set per object constants.
 	world = XMLoadFloat4x4(&mWavesWorld);
-	world = DirectX::XMMatrixTranspose(world);
 	worldInvTranspose = MathHelper::InverseTranspose(world);
-	worldInvTranspose = DirectX::XMMatrixTranspose(worldInvTranspose);
 	worldViewProj = world * view * proj;
-	worldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
-	perObjectStruct.World = world;
-	perObjectStruct.WorldInvTranspose = worldInvTranspose;
-	perObjectStruct.WorldViewProj = worldViewProj;
+	perObjectStruct.World = DirectX::XMMatrixTranspose(world);
+	perObjectStruct.WorldInvTranspose = DirectX::XMMatrixTranspose(worldInvTranspose);
+	perObjectStruct.WorldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
 	perObjectStruct.Material = mWavesMat;
 
 	md3dImmediateContext->Map(perObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
 	memcpy(cbData.pData, &perObjectStruct, sizeof(perObjectStruct));
 	md3dImmediateContext->Unmap(perObjectBuffer, 0);
 	md3dImmediateContext->VSSetConstantBuffers(1, 1, &perObjectBuffer);
+	md3dImmediateContext->PSSetConstantBuffers(1, 1, &perObjectBuffer);
 	md3dImmediateContext->DrawIndexed(3 * mWaves.TriangleCount(), 0, 0);
 
 	HR(mSwapChain->Present(0, 0));
