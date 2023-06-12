@@ -41,6 +41,8 @@ public:
 	virtual void OnMouseUp(WPARAM btnState, int x, int y)  { }
 	virtual void OnMouseMove(WPARAM btnState, int x, int y){ }
 	virtual void OnSpaceDown(WPARAM btnState) { }
+	virtual void OnRightDown(WPARAM btnState) { }
+	virtual void OnLeftDown(WPARAM btnState) { }
 
 protected:
 	bool InitMainWindow();

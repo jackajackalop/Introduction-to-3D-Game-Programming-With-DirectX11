@@ -36,6 +36,8 @@ public:
 	void OnMouseDown(WPARAM btnState, int x, int y);
 	void OnMouseUp(WPARAM btnState, int x, int y);
 	void OnMouseMove(WPARAM btnState, int x, int y);
+	void OnRightDown(WPARAM btnState);
+	void OnLeftDown(WPARAM btnState);
 
 private:
 	void CheckCompilationErrors(ID3D10Blob* compilationMsgs);
@@ -124,29 +126,29 @@ LightingApp::LightingApp(HINSTANCE hInstance)
 	XMStoreFloat4x4(&mWavesWorld, wavesOffset);
 
 	// Directional light.
-	mDirLight.Ambient  = DirectX::XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
-	mDirLight.Diffuse  = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-	mDirLight.Specular = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+	mDirLight.Ambient  = DirectX::XMFLOAT4(0.2f, 0.0f, 0.0f, 1.0f);
+	mDirLight.Diffuse  = DirectX::XMFLOAT4(0.5f, 0.0f, 0.0f, 1.0f);
+	mDirLight.Specular = DirectX::XMFLOAT4(0.5f, 0.0f, 0.0f, 1.0f);
 	mDirLight.Direction = DirectX::XMFLOAT3(0.57735f, -0.57735f, 0.57735f);
  
 	// Point light--position is changed every frame to animate in UpdateScene function.
-	mPointLight.Ambient  = DirectX::XMFLOAT4(0.3f, 0.3f, 0.3f, 1.0f);
-	mPointLight.Diffuse  = DirectX::XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
-	mPointLight.Specular = DirectX::XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f);
+	mPointLight.Ambient  = DirectX::XMFLOAT4(0.0f, 0.3f, 0.0f, 1.0f);
+	mPointLight.Diffuse  = DirectX::XMFLOAT4(0.0f, 0.7f, 0.0f, 1.0f);
+	mPointLight.Specular = DirectX::XMFLOAT4(0.0f, 0.7f, 0.0f, 1.0f);
 	mPointLight.Att      = DirectX::XMFLOAT3(0.0f, 0.1f, 0.0f);
 	mPointLight.Range    = 25.0f;
 
 	// Spot light--position and direction changed every frame to animate in UpdateScene function.
 	mSpotLight.Ambient  = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-	mSpotLight.Diffuse  = DirectX::XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
-	mSpotLight.Specular = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+	mSpotLight.Diffuse  = DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	mSpotLight.Specular = DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 	mSpotLight.Att      = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
 	mSpotLight.Spot     = 96.0f;
 	mSpotLight.Range    = 10000.0f;
 
 	mLandMat.Ambient  = DirectX::XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
 	mLandMat.Diffuse  = DirectX::XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
-	mLandMat.Specular = DirectX::XMFLOAT4(0.2f, 0.2f, 0.2f, 16.0f);
+	mLandMat.Specular = DirectX::XMFLOAT4(0.2f, 0.2f, 0.2f, 512.0f);
 
 	mWavesMat.Ambient  = DirectX::XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
 	mWavesMat.Diffuse  = DirectX::XMFLOAT4(0.137f, 0.42f, 0.556f, 1.0f);
@@ -352,6 +354,16 @@ void LightingApp::OnMouseDown(WPARAM btnState, int x, int y)
 void LightingApp::OnMouseUp(WPARAM btnState, int x, int y)
 {
 	ReleaseCapture();
+}
+
+void LightingApp::OnRightDown(WPARAM btnState)
+{
+	mSpotLight.Spot += 10.0f;
+}
+
+void LightingApp::OnLeftDown(WPARAM btnState)
+{
+	mSpotLight.Spot -= 10.0f;
 }
 
 void LightingApp::OnMouseMove(WPARAM btnState, int x, int y)

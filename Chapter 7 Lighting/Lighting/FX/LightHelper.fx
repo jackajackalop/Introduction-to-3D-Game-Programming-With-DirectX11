@@ -50,6 +50,22 @@ struct Material
 	float4 Reflect;
 };
 
+float ToonShade(float lightFactor)
+{
+	if (lightFactor <= 0.2f)
+	{
+		return 0.1f;
+	}
+	else if (lightFactor <= 0.8f)
+	{
+		return 0.5f;
+	}
+	else
+	{
+		return 0.8f;
+	}
+}
+
 //---------------------------------------------------------------------------------------
 // Computes the ambient, diffuse, and specular terms in the lighting equation
 // from a directional light.  We need to output the terms separately because
@@ -75,7 +91,7 @@ void ComputeDirectionalLight(Material mat, DirectionalLight L,
 	// Add diffuse and specular term, provided the surface is in 
 	// the line of site of the light.
 	
-	float diffuseFactor = dot(lightVec, normal);
+	float diffuseFactor = ToonShade(dot(lightVec, normal));
 
 	// Flatten to avoid dynamic branching.
 	[flatten]
@@ -173,7 +189,7 @@ void ComputeSpotLight(Material mat, SpotLight L, float3 pos, float3 normal, floa
 	// Add diffuse and specular term, provided the surface is in 
 	// the line of site of the light.
 
-	float diffuseFactor = dot(lightVec, normal);
+	float diffuseFactor = ToonShade(dot(lightVec, normal));
 
 	// Flatten to avoid dynamic branching.
 	[flatten]
@@ -197,5 +213,4 @@ void ComputeSpotLight(Material mat, SpotLight L, float3 pos, float3 normal, floa
 	spec    *= att;
 }
 
- 
  

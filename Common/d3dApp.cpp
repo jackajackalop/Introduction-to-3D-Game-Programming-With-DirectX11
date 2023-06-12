@@ -337,6 +337,14 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			OnSpaceDown(wParam);
 		}
+		else if (wParam == VK_RIGHT)
+		{
+			OnRightDown(wParam);
+		}
+		else if (wParam == VK_LEFT)
+		{
+			OnLeftDown(wParam);
+		}
 		return 0;
 	}
 
