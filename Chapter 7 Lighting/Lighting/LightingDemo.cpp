@@ -132,11 +132,11 @@ LightingApp::LightingApp(HINSTANCE hInstance)
 	mDirLight.Direction = DirectX::XMFLOAT3(0.57735f, -0.57735f, 0.57735f);
  
 	// Point light--position is changed every frame to animate in UpdateScene function.
-	mPointLight.Ambient  = DirectX::XMFLOAT4(0.0f, 0.3f, 0.0f, 1.0f);
+	mPointLight.Ambient  = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
 	mPointLight.Diffuse  = DirectX::XMFLOAT4(0.0f, 0.7f, 0.0f, 1.0f);
 	mPointLight.Specular = DirectX::XMFLOAT4(0.0f, 0.7f, 0.0f, 1.0f);
 	mPointLight.Att      = DirectX::XMFLOAT3(0.0f, 0.1f, 0.0f);
-	mPointLight.Range    = 25.0f;
+	mPointLight.Range    = 100.0f;
 
 	// Spot light--position and direction changed every frame to animate in UpdateScene function.
 	mSpotLight.Ambient  = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
