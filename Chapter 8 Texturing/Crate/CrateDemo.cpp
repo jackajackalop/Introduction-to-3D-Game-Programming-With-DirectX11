@@ -14,9 +14,34 @@
 #include "GeometryGenerator.h"
 #include "MathHelper.h"
 #include "LightHelper.h"
-#include "Effects.h"
 #include "Vertex.h"
 #include <DDSTextureLoader.h>
+#include <d3dcompiler.h>
+
+struct CrateDemoPerFrameStruct
+{
+	CrateDemoPerFrameStruct() { ZeroMemory(this, sizeof(this)); }
+
+	DirectionalLight gDirLights[3];
+	DirectX::XMFLOAT4 gEyePosW;
+
+	float  gFogStart;
+	float  gFogRange;
+	DirectX::XMFLOAT2 padding;
+
+	DirectX::XMFLOAT4 gFogColor;
+};
+
+struct CrateDemoPerObjectStruct
+{
+	CrateDemoPerObjectStruct() { ZeroMemory(this, sizeof(this)); }
+
+	DirectX::XMMATRIX World;
+	DirectX::XMMATRIX WorldInvTranspose;
+	DirectX::XMMATRIX WorldViewProj;
+	DirectX::XMMATRIX TexTransform;
+	Material Material;
+};
 
 class CrateApp : public D3DApp
 {
@@ -34,12 +59,23 @@ public:
 	void OnMouseMove(WPARAM btnState, int x, int y);
 
 private:
+	void CheckCompilationErrors(ID3D10Blob* compilationMsgs);
 	void BuildGeometryBuffers();
 
 private:
 	ID3D11Buffer* mBoxVB;
 	ID3D11Buffer* mBoxIB;
 
+	CrateDemoPerObjectStruct perObjectStruct;
+	CrateDemoPerFrameStruct perFrameStruct;
+	ID3D11VertexShader* mVS;
+	ID3D11PixelShader* mPS;
+	ID3D11Buffer* perFrameBuffer;
+	ID3D11Buffer* perObjectBuffer;
+	ID3D10Blob* mVSBlob;
+
+	ID3D11InputLayout* mInputLayout;
+	
 	ID3D11ShaderResourceView* mDiffuseMapSRV;
 
 	DirectionalLight mDirLights[3];
@@ -116,9 +152,23 @@ CrateApp::~CrateApp()
 	ReleaseCOM(mBoxVB);
 	ReleaseCOM(mBoxIB);
 	ReleaseCOM(mDiffuseMapSRV);
+	ReleaseCOM(mVS);
+	ReleaseCOM(mPS);
+	ReleaseCOM(perFrameBuffer);
+	ReleaseCOM(perObjectBuffer);
+	ReleaseCOM(mVSBlob);
 
-	Effects::DestroyAll();
 	InputLayouts::DestroyAll();
+}
+
+void CrateApp::CheckCompilationErrors(ID3D10Blob* compilationMsgs)
+{
+	// compilationMsgs can store errors or warnings.
+	if (compilationMsgs != 0)
+	{
+		MessageBoxA(0, (char*)compilationMsgs->GetBufferPointer(), 0, 0);
+		ReleaseCOM(compilationMsgs);
+	}
 }
 
 bool CrateApp::Init()
@@ -126,9 +176,6 @@ bool CrateApp::Init()
 	if(!D3DApp::Init())
 		return false;
 
-	// Must init Effects first since InputLayouts depend on shader signatures.
-	Effects::InitAll(md3dDevice);
-	InputLayouts::InitAll(md3dDevice);
 
 	size_t maxsize = D3DX11_FROM_FILE;
 	D3D11_USAGE usage = D3D11_USAGE_STAGING;
@@ -139,8 +186,43 @@ bool CrateApp::Init()
 
 	HR(CreateDDSTextureFromFileEx(md3dDevice, L"Textures/WoodCrate01.dds", maxsize, usage, bindFlags, cpuAccessFlags, miscFlags,
 		loadFlags, nullptr, &mDiffuseMapSRV, 0));
- 
+
 	BuildGeometryBuffers();
+
+	// Must init Effects first since InputLayouts depend on shader signatures.
+	ID3D10Blob* compiledShader = 0;
+	ID3D10Blob* compilationMsgs = 0;
+	HR(D3DCompileFromFile(L"FX/Basic.fx", 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_5_0", 0,
+		0, &mVSBlob, &compilationMsgs));
+
+	CheckCompilationErrors(compilationMsgs);
+
+	HR(md3dDevice->CreateVertexShader(mVSBlob->GetBufferPointer(), mVSBlob->GetBufferSize(), nullptr, &mVS));
+
+	HR(D3DCompileFromFile(L"FX/Basic.fx", 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_5_0", 0,
+		0, &compiledShader, &compilationMsgs));
+
+	CheckCompilationErrors(compilationMsgs);
+
+	HR(md3dDevice->CreatePixelShader(compiledShader->GetBufferPointer(), compiledShader->GetBufferSize(), nullptr, &mPS));
+	ReleaseCOM(compiledShader);
+
+	// Create a constant buffer for the shader constants
+	D3D11_BUFFER_DESC perObjectConstantBufferDesc = { sizeof(perObjectStruct), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE };
+	D3D11_BUFFER_DESC perFrameConstantBufferDesc = { sizeof(perFrameStruct), D3D11_USAGE_DYNAMIC, D3D11_BIND_CONSTANT_BUFFER, D3D11_CPU_ACCESS_WRITE };
+	HR(md3dDevice->CreateBuffer(&perObjectConstantBufferDesc, nullptr, &perObjectBuffer));
+	HR(md3dDevice->CreateBuffer(&perFrameConstantBufferDesc, nullptr, &perFrameBuffer));
+
+	// Create the vertex input layout.
+	D3D11_INPUT_ELEMENT_DESC vertexDesc[] =
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0}
+	};
+
+	HR(md3dDevice->CreateInputLayout(vertexDesc, 3, mVSBlob->GetBufferPointer(),
+		mVSBlob->GetBufferSize(), &mInputLayout));
 
 	return true;
 }
@@ -176,7 +258,7 @@ void CrateApp::DrawScene()
 	md3dImmediateContext->ClearRenderTargetView(mRenderTargetView, reinterpret_cast<const float*>(&Colors::LightSteelBlue));
 	md3dImmediateContext->ClearDepthStencilView(mDepthStencilView, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	md3dImmediateContext->IASetInputLayout(InputLayouts::Basic32);
+	md3dImmediateContext->IASetInputLayout(mInputLayout);
     md3dImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
  
 	UINT stride = sizeof(Vertex::Basic32);
@@ -185,35 +267,44 @@ void CrateApp::DrawScene()
 	DirectX::XMMATRIX view  = XMLoadFloat4x4(&mView);
 	DirectX::XMMATRIX proj  = XMLoadFloat4x4(&mProj);
 	DirectX::XMMATRIX viewProj = view*proj;
+	std::copy(perFrameStruct.gDirLights, perFrameStruct.gDirLights + 3, mDirLights);
+	perFrameStruct.gEyePosW.x = mEyePosW.x;
+	perFrameStruct.gEyePosW.y = mEyePosW.y;
+	perFrameStruct.gEyePosW.z = mEyePosW.z;
 
 	// Set per frame constants.
-	Effects::BasicFX->SetDirLights(mDirLights);
-	Effects::BasicFX->SetEyePosW(mEyePosW);
+	D3D11_MAPPED_SUBRESOURCE cbData;
+	md3dImmediateContext->Map(perFrameBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
+	memcpy(cbData.pData, &perFrameStruct, sizeof(perFrameStruct));
+	md3dImmediateContext->Unmap(perFrameBuffer, 0);
  
-	ID3DX11EffectTechnique* activeTech = Effects::BasicFX->Light2TexTech;
+	//ID3DX11EffectTechnique* activeTech = Effects::BasicFX->Light2TexTech;
 
-    D3DX11_TECHNIQUE_DESC techDesc;
-	activeTech->GetDesc( &techDesc );
-    for(UINT p = 0; p < techDesc.Passes; ++p)
-    {
-		md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
-		md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
+	md3dImmediateContext->IASetVertexBuffers(0, 1, &mBoxVB, &stride, &offset);
+	md3dImmediateContext->IASetIndexBuffer(mBoxIB, DXGI_FORMAT_R32_UINT, 0);
 
-		// Draw the box.
-		DirectX::XMMATRIX world = XMLoadFloat4x4(&mBoxWorld);
-		DirectX::XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
-		DirectX::XMMATRIX worldViewProj = world*view*proj;
+	// Draw the box.
+	DirectX::XMMATRIX world = XMLoadFloat4x4(&mBoxWorld);
+	DirectX::XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
+	DirectX::XMMATRIX worldViewProj = world*view*proj;
+	perObjectStruct.World = DirectX::XMMatrixTranspose(world);
+	perObjectStruct.WorldInvTranspose = DirectX::XMMatrixTranspose(worldInvTranspose);
+	perObjectStruct.WorldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
+	perObjectStruct.TexTransform = DirectX::XMMatrixTranspose(XMLoadFloat4x4(&mTexTransform));
+	perObjectStruct.Material = mBoxMat;
 
-		Effects::BasicFX->SetWorld(world);
-		Effects::BasicFX->SetWorldInvTranspose(worldInvTranspose);
-		Effects::BasicFX->SetWorldViewProj(worldViewProj);
-		Effects::BasicFX->SetTexTransform(XMLoadFloat4x4(&mTexTransform));
-		Effects::BasicFX->SetMaterial(mBoxMat);
-		Effects::BasicFX->SetDiffuseMap(mDiffuseMapSRV);
+	md3dImmediateContext->Map(perObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
+	memcpy(cbData.pData, &perObjectStruct, sizeof(perObjectStruct));
+	md3dImmediateContext->Unmap(perObjectBuffer, 0);
 
-		activeTech->GetPassByIndex(p)->Apply(0, md3dImmediateContext);
-		md3dImmediateContext->DrawIndexed(mBoxIndexCount, mBoxIndexOffset, mBoxVertexOffset);
-    }
+	md3dImmediateContext->VSSetShader(mVS, nullptr, 0);
+	md3dImmediateContext->PSSetShader(mPS, nullptr, 0);
+
+	md3dImmediateContext->VSSetConstantBuffers(0, 1, &perFrameBuffer);
+	md3dImmediateContext->VSSetConstantBuffers(1, 1, &perObjectBuffer);
+	md3dImmediateContext->PSSetConstantBuffers(0, 1, &perFrameBuffer);
+	md3dImmediateContext->PSSetConstantBuffers(1, 1, &perObjectBuffer);
+	md3dImmediateContext->DrawIndexed(mBoxIndexCount, mBoxIndexOffset, mBoxVertexOffset);
 
 	HR(mSwapChain->Present(0, 0));
 }

@@ -6,7 +6,7 @@
 
 #include "LightHelper.fx"
  
-cbuffer cbPerFrame
+cbuffer cbPerFrame : register(b0)
 {
 	DirectionalLight gDirLights[3];
 	float3 gEyePosW;
@@ -16,7 +16,7 @@ cbuffer cbPerFrame
 	float4 gFogColor;
 };
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register(b1)
 {
 	float4x4 gWorld;
 	float4x4 gWorldInvTranspose;

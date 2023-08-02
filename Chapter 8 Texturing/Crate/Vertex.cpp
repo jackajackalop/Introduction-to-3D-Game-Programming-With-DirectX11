@@ -24,9 +24,7 @@ void InputLayouts::InitAll(ID3D11Device* device)
 	// Basic32
 	//
 
-	Effects::BasicFX->Light1Tech->GetPassByIndex(0)->GetDesc(&passDesc);
-	HR(device->CreateInputLayout(InputLayoutDesc::Basic32, 3, passDesc.pIAInputSignature, 
-		passDesc.IAInputSignatureSize, &Basic32));
+	// Effects::BasicFX->Light1Tech->GetPassByIndex(0)->GetDesc(&passDesc);
 }
 
 void InputLayouts::DestroyAll()

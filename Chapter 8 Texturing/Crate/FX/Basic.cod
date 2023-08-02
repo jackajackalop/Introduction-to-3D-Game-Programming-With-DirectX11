@@ -3,7 +3,7 @@
 //
 // 2 local buffer(s)
 //
-cbuffer cbPerFrame
+cbuffer cbPerFrame : register(b0)
 {
     DirectionalLight gDirLights[3];     // Offset:    0, size:  192
     float3  gEyePosW;                   // Offset:  192, size:   12
@@ -12,7 +12,7 @@ cbuffer cbPerFrame
     float4  gFogColor;                  // Offset:  224, size:   16
 }
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register(b1)
 {
     float4x4 gWorld;                    // Offset:    0, size:   64
     float4x4 gWorldInvTranspose;        // Offset:   64, size:   64
@@ -77,7 +77,7 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim      HLSL Bind  Count
                 // ------------------------------ ---------- ------- ----------- -------------- ------
-                // cbPerObject                       cbuffer      NA          NA            cb0      1 
+                // cbPerObject                       cbuffer      NA          NA            cb1      1 
                 //
                 //
                 //
@@ -101,7 +101,7 @@ fxgroup
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer CB0[14], immediateIndexed
+                dcl_constantbuffer CB1[14], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xy
@@ -123,26 +123,26 @@ fxgroup
                 #line 60 "C:\Users\yixin\Desktop\Introduction-to-3D-Game-Programming-With-DirectX11\Chapter 8 Texturing\Crate\FX\Basic.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
-                dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosW.x
-                dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- vout.PosW.y
-                dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosW.z
+                dp4 r1.x, r0.xyzw, cb1[0].xyzw  // r1.x <- vout.PosW.x
+                dp4 r1.y, r0.xyzw, cb1[1].xyzw  // r1.y <- vout.PosW.y
+                dp4 r1.z, r0.xyzw, cb1[2].xyzw  // r1.z <- vout.PosW.z
                 
                 #line 61
-                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalW.x
-                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalW.y
-                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalW.z
+                dp3 r2.x, v1.xyzx, cb1[4].xyzx  // r2.x <- vout.NormalW.x
+                dp3 r2.y, v1.xyzx, cb1[5].xyzx  // r2.y <- vout.NormalW.y
+                dp3 r2.z, v1.xyzx, cb1[6].xyzx  // r2.z <- vout.NormalW.z
                 
                 #line 64
-                dp4 r3.x, r0.xyzw, cb0[8].xyzw  // r3.x <- vout.PosH.x
-                dp4 r3.y, r0.xyzw, cb0[9].xyzw  // r3.y <- vout.PosH.y
-                dp4 r3.z, r0.xyzw, cb0[10].xyzw  // r3.z <- vout.PosH.z
-                dp4 r3.w, r0.xyzw, cb0[11].xyzw  // r3.w <- vout.PosH.w
+                dp4 r3.x, r0.xyzw, cb1[8].xyzw  // r3.x <- vout.PosH.x
+                dp4 r3.y, r0.xyzw, cb1[9].xyzw  // r3.y <- vout.PosH.y
+                dp4 r3.z, r0.xyzw, cb1[10].xyzw  // r3.z <- vout.PosH.z
+                dp4 r3.w, r0.xyzw, cb1[11].xyzw  // r3.w <- vout.PosH.w
                 
                 #line 67
                 mov r0.xy, v2.xyxx
                 mov r0.zw, l(0,0,0,1.000000)
-                dp4 r4.x, r0.xyzw, cb0[12].xyzw  // r4.x <- vout.Tex.x
-                dp4 r4.y, r0.xyzw, cb0[13].xyzw  // r4.y <- vout.Tex.y
+                dp4 r4.x, r0.xyzw, cb1[12].xyzw  // r4.x <- vout.Tex.x
+                dp4 r4.y, r0.xyzw, cb1[13].xyzw  // r4.y <- vout.Tex.y
                 
                 #line 69
                 mov o0.xyzw, r3.xyzw
@@ -397,7 +397,7 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim      HLSL Bind  Count
                 // ------------------------------ ---------- ------- ----------- -------------- ------
-                // cbPerObject                       cbuffer      NA          NA            cb0      1 
+                // cbPerObject                       cbuffer      NA          NA            cb1      1 
                 //
                 //
                 //
@@ -421,7 +421,7 @@ fxgroup
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer CB0[14], immediateIndexed
+                dcl_constantbuffer CB1[14], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xy
@@ -443,26 +443,26 @@ fxgroup
                 #line 60 "C:\Users\yixin\Desktop\Introduction-to-3D-Game-Programming-With-DirectX11\Chapter 8 Texturing\Crate\FX\Basic.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
-                dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosW.x
-                dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- vout.PosW.y
-                dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosW.z
+                dp4 r1.x, r0.xyzw, cb1[0].xyzw  // r1.x <- vout.PosW.x
+                dp4 r1.y, r0.xyzw, cb1[1].xyzw  // r1.y <- vout.PosW.y
+                dp4 r1.z, r0.xyzw, cb1[2].xyzw  // r1.z <- vout.PosW.z
                 
                 #line 61
-                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalW.x
-                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalW.y
-                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalW.z
+                dp3 r2.x, v1.xyzx, cb1[4].xyzx  // r2.x <- vout.NormalW.x
+                dp3 r2.y, v1.xyzx, cb1[5].xyzx  // r2.y <- vout.NormalW.y
+                dp3 r2.z, v1.xyzx, cb1[6].xyzx  // r2.z <- vout.NormalW.z
                 
                 #line 64
-                dp4 r3.x, r0.xyzw, cb0[8].xyzw  // r3.x <- vout.PosH.x
-                dp4 r3.y, r0.xyzw, cb0[9].xyzw  // r3.y <- vout.PosH.y
-                dp4 r3.z, r0.xyzw, cb0[10].xyzw  // r3.z <- vout.PosH.z
-                dp4 r3.w, r0.xyzw, cb0[11].xyzw  // r3.w <- vout.PosH.w
+                dp4 r3.x, r0.xyzw, cb1[8].xyzw  // r3.x <- vout.PosH.x
+                dp4 r3.y, r0.xyzw, cb1[9].xyzw  // r3.y <- vout.PosH.y
+                dp4 r3.z, r0.xyzw, cb1[10].xyzw  // r3.z <- vout.PosH.z
+                dp4 r3.w, r0.xyzw, cb1[11].xyzw  // r3.w <- vout.PosH.w
                 
                 #line 67
                 mov r0.xy, v2.xyxx
                 mov r0.zw, l(0,0,0,1.000000)
-                dp4 r4.x, r0.xyzw, cb0[12].xyzw  // r4.x <- vout.Tex.x
-                dp4 r4.y, r0.xyzw, cb0[13].xyzw  // r4.y <- vout.Tex.y
+                dp4 r4.x, r0.xyzw, cb1[12].xyzw  // r4.x <- vout.Tex.x
+                dp4 r4.y, r0.xyzw, cb1[13].xyzw  // r4.y <- vout.Tex.y
                 
                 #line 69
                 mov o0.xyzw, r3.xyzw
@@ -786,7 +786,7 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim      HLSL Bind  Count
                 // ------------------------------ ---------- ------- ----------- -------------- ------
-                // cbPerObject                       cbuffer      NA          NA            cb0      1 
+                // cbPerObject                       cbuffer      NA          NA            cb1      1 
                 //
                 //
                 //
@@ -810,7 +810,7 @@ fxgroup
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer CB0[14], immediateIndexed
+                dcl_constantbuffer CB1[14], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xy
@@ -832,26 +832,26 @@ fxgroup
                 #line 60 "C:\Users\yixin\Desktop\Introduction-to-3D-Game-Programming-With-DirectX11\Chapter 8 Texturing\Crate\FX\Basic.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
-                dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosW.x
-                dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- vout.PosW.y
-                dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosW.z
+                dp4 r1.x, r0.xyzw, cb1[0].xyzw  // r1.x <- vout.PosW.x
+                dp4 r1.y, r0.xyzw, cb1[1].xyzw  // r1.y <- vout.PosW.y
+                dp4 r1.z, r0.xyzw, cb1[2].xyzw  // r1.z <- vout.PosW.z
                 
                 #line 61
-                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalW.x
-                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalW.y
-                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalW.z
+                dp3 r2.x, v1.xyzx, cb1[4].xyzx  // r2.x <- vout.NormalW.x
+                dp3 r2.y, v1.xyzx, cb1[5].xyzx  // r2.y <- vout.NormalW.y
+                dp3 r2.z, v1.xyzx, cb1[6].xyzx  // r2.z <- vout.NormalW.z
                 
                 #line 64
-                dp4 r3.x, r0.xyzw, cb0[8].xyzw  // r3.x <- vout.PosH.x
-                dp4 r3.y, r0.xyzw, cb0[9].xyzw  // r3.y <- vout.PosH.y
-                dp4 r3.z, r0.xyzw, cb0[10].xyzw  // r3.z <- vout.PosH.z
-                dp4 r3.w, r0.xyzw, cb0[11].xyzw  // r3.w <- vout.PosH.w
+                dp4 r3.x, r0.xyzw, cb1[8].xyzw  // r3.x <- vout.PosH.x
+                dp4 r3.y, r0.xyzw, cb1[9].xyzw  // r3.y <- vout.PosH.y
+                dp4 r3.z, r0.xyzw, cb1[10].xyzw  // r3.z <- vout.PosH.z
+                dp4 r3.w, r0.xyzw, cb1[11].xyzw  // r3.w <- vout.PosH.w
                 
                 #line 67
                 mov r0.xy, v2.xyxx
                 mov r0.zw, l(0,0,0,1.000000)
-                dp4 r4.x, r0.xyzw, cb0[12].xyzw  // r4.x <- vout.Tex.x
-                dp4 r4.y, r0.xyzw, cb0[13].xyzw  // r4.y <- vout.Tex.y
+                dp4 r4.x, r0.xyzw, cb1[12].xyzw  // r4.x <- vout.Tex.x
+                dp4 r4.y, r0.xyzw, cb1[13].xyzw  // r4.y <- vout.Tex.y
                 
                 #line 69
                 mov o0.xyzw, r3.xyzw
@@ -1244,7 +1244,7 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim      HLSL Bind  Count
                 // ------------------------------ ---------- ------- ----------- -------------- ------
-                // cbPerObject                       cbuffer      NA          NA            cb0      1 
+                // cbPerObject                       cbuffer      NA          NA            cb1      1 
                 //
                 //
                 //
@@ -1268,7 +1268,7 @@ fxgroup
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer CB0[14], immediateIndexed
+                dcl_constantbuffer CB1[14], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xy
@@ -1290,26 +1290,26 @@ fxgroup
                 #line 60 "C:\Users\yixin\Desktop\Introduction-to-3D-Game-Programming-With-DirectX11\Chapter 8 Texturing\Crate\FX\Basic.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
-                dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosW.x
-                dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- vout.PosW.y
-                dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosW.z
+                dp4 r1.x, r0.xyzw, cb1[0].xyzw  // r1.x <- vout.PosW.x
+                dp4 r1.y, r0.xyzw, cb1[1].xyzw  // r1.y <- vout.PosW.y
+                dp4 r1.z, r0.xyzw, cb1[2].xyzw  // r1.z <- vout.PosW.z
                 
                 #line 61
-                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalW.x
-                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalW.y
-                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalW.z
+                dp3 r2.x, v1.xyzx, cb1[4].xyzx  // r2.x <- vout.NormalW.x
+                dp3 r2.y, v1.xyzx, cb1[5].xyzx  // r2.y <- vout.NormalW.y
+                dp3 r2.z, v1.xyzx, cb1[6].xyzx  // r2.z <- vout.NormalW.z
                 
                 #line 64
-                dp4 r3.x, r0.xyzw, cb0[8].xyzw  // r3.x <- vout.PosH.x
-                dp4 r3.y, r0.xyzw, cb0[9].xyzw  // r3.y <- vout.PosH.y
-                dp4 r3.z, r0.xyzw, cb0[10].xyzw  // r3.z <- vout.PosH.z
-                dp4 r3.w, r0.xyzw, cb0[11].xyzw  // r3.w <- vout.PosH.w
+                dp4 r3.x, r0.xyzw, cb1[8].xyzw  // r3.x <- vout.PosH.x
+                dp4 r3.y, r0.xyzw, cb1[9].xyzw  // r3.y <- vout.PosH.y
+                dp4 r3.z, r0.xyzw, cb1[10].xyzw  // r3.z <- vout.PosH.z
+                dp4 r3.w, r0.xyzw, cb1[11].xyzw  // r3.w <- vout.PosH.w
                 
                 #line 67
                 mov r0.xy, v2.xyxx
                 mov r0.zw, l(0,0,0,1.000000)
-                dp4 r4.x, r0.xyzw, cb0[12].xyzw  // r4.x <- vout.Tex.x
-                dp4 r4.y, r0.xyzw, cb0[13].xyzw  // r4.y <- vout.Tex.y
+                dp4 r4.x, r0.xyzw, cb1[12].xyzw  // r4.x <- vout.Tex.x
+                dp4 r4.y, r0.xyzw, cb1[13].xyzw  // r4.y <- vout.Tex.y
                 
                 #line 69
                 mov o0.xyzw, r3.xyzw
@@ -1355,7 +1355,7 @@ fxgroup
                 // ------------------------------ ---------- ------- ----------- -------------- ------
                 // samAnisotropic                    sampler      NA          NA             s0      1 
                 // gDiffuseMap                       texture  float4          2d             t0      1 
-                // cbPerObject                       cbuffer      NA          NA            cb0      1 
+                // cbPerObject                       cbuffer      NA          NA            cb1      1 
                 //
                 //
                 //
@@ -1377,7 +1377,7 @@ fxgroup
                 //
                 ps_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer CB0[18], immediateIndexed
+                dcl_constantbuffer CB1[18], immediateIndexed
                 dcl_sampler s0, mode_default
                 dcl_resource_texture2d (float,float,float,float) t0
                 dcl_input_ps linear v3.xy
@@ -1398,7 +1398,7 @@ fxgroup
                 mov r0.xyz, r0.xyzx  // r0.x <- litColor.x; r0.y <- litColor.y; r0.z <- litColor.z
                 
                 #line 124
-                mul r0.w, r0.w, cb0[17].w  // r0.w <- litColor.w
+                mul r0.w, r0.w, cb1[17].w  // r0.w <- litColor.w
                 
                 #line 126
                 mov o0.xyz, r0.xyzx
@@ -1447,7 +1447,7 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim      HLSL Bind  Count
                 // ------------------------------ ---------- ------- ----------- -------------- ------
-                // cbPerObject                       cbuffer      NA          NA            cb0      1 
+                // cbPerObject                       cbuffer      NA          NA            cb1      1 
                 //
                 //
                 //
@@ -1471,7 +1471,7 @@ fxgroup
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer CB0[14], immediateIndexed
+                dcl_constantbuffer CB1[14], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xy
@@ -1493,26 +1493,26 @@ fxgroup
                 #line 60 "C:\Users\yixin\Desktop\Introduction-to-3D-Game-Programming-With-DirectX11\Chapter 8 Texturing\Crate\FX\Basic.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
-                dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosW.x
-                dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- vout.PosW.y
-                dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosW.z
+                dp4 r1.x, r0.xyzw, cb1[0].xyzw  // r1.x <- vout.PosW.x
+                dp4 r1.y, r0.xyzw, cb1[1].xyzw  // r1.y <- vout.PosW.y
+                dp4 r1.z, r0.xyzw, cb1[2].xyzw  // r1.z <- vout.PosW.z
                 
                 #line 61
-                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalW.x
-                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalW.y
-                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalW.z
+                dp3 r2.x, v1.xyzx, cb1[4].xyzx  // r2.x <- vout.NormalW.x
+                dp3 r2.y, v1.xyzx, cb1[5].xyzx  // r2.y <- vout.NormalW.y
+                dp3 r2.z, v1.xyzx, cb1[6].xyzx  // r2.z <- vout.NormalW.z
                 
                 #line 64
-                dp4 r3.x, r0.xyzw, cb0[8].xyzw  // r3.x <- vout.PosH.x
-                dp4 r3.y, r0.xyzw, cb0[9].xyzw  // r3.y <- vout.PosH.y
-                dp4 r3.z, r0.xyzw, cb0[10].xyzw  // r3.z <- vout.PosH.z
-                dp4 r3.w, r0.xyzw, cb0[11].xyzw  // r3.w <- vout.PosH.w
+                dp4 r3.x, r0.xyzw, cb1[8].xyzw  // r3.x <- vout.PosH.x
+                dp4 r3.y, r0.xyzw, cb1[9].xyzw  // r3.y <- vout.PosH.y
+                dp4 r3.z, r0.xyzw, cb1[10].xyzw  // r3.z <- vout.PosH.z
+                dp4 r3.w, r0.xyzw, cb1[11].xyzw  // r3.w <- vout.PosH.w
                 
                 #line 67
                 mov r0.xy, v2.xyxx
                 mov r0.zw, l(0,0,0,1.000000)
-                dp4 r4.x, r0.xyzw, cb0[12].xyzw  // r4.x <- vout.Tex.x
-                dp4 r4.y, r0.xyzw, cb0[13].xyzw  // r4.y <- vout.Tex.y
+                dp4 r4.x, r0.xyzw, cb1[12].xyzw  // r4.x <- vout.Tex.x
+                dp4 r4.y, r0.xyzw, cb1[13].xyzw  // r4.y <- vout.Tex.y
                 
                 #line 69
                 mov o0.xyzw, r3.xyzw
@@ -1772,7 +1772,7 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim      HLSL Bind  Count
                 // ------------------------------ ---------- ------- ----------- -------------- ------
-                // cbPerObject                       cbuffer      NA          NA            cb0      1 
+                // cbPerObject                       cbuffer      NA          NA            cb1      1 
                 //
                 //
                 //
@@ -1796,7 +1796,7 @@ fxgroup
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer CB0[14], immediateIndexed
+                dcl_constantbuffer CB1[14], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xy
@@ -1818,26 +1818,26 @@ fxgroup
                 #line 60 "C:\Users\yixin\Desktop\Introduction-to-3D-Game-Programming-With-DirectX11\Chapter 8 Texturing\Crate\FX\Basic.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
-                dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosW.x
-                dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- vout.PosW.y
-                dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosW.z
+                dp4 r1.x, r0.xyzw, cb1[0].xyzw  // r1.x <- vout.PosW.x
+                dp4 r1.y, r0.xyzw, cb1[1].xyzw  // r1.y <- vout.PosW.y
+                dp4 r1.z, r0.xyzw, cb1[2].xyzw  // r1.z <- vout.PosW.z
                 
                 #line 61
-                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalW.x
-                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalW.y
-                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalW.z
+                dp3 r2.x, v1.xyzx, cb1[4].xyzx  // r2.x <- vout.NormalW.x
+                dp3 r2.y, v1.xyzx, cb1[5].xyzx  // r2.y <- vout.NormalW.y
+                dp3 r2.z, v1.xyzx, cb1[6].xyzx  // r2.z <- vout.NormalW.z
                 
                 #line 64
-                dp4 r3.x, r0.xyzw, cb0[8].xyzw  // r3.x <- vout.PosH.x
-                dp4 r3.y, r0.xyzw, cb0[9].xyzw  // r3.y <- vout.PosH.y
-                dp4 r3.z, r0.xyzw, cb0[10].xyzw  // r3.z <- vout.PosH.z
-                dp4 r3.w, r0.xyzw, cb0[11].xyzw  // r3.w <- vout.PosH.w
+                dp4 r3.x, r0.xyzw, cb1[8].xyzw  // r3.x <- vout.PosH.x
+                dp4 r3.y, r0.xyzw, cb1[9].xyzw  // r3.y <- vout.PosH.y
+                dp4 r3.z, r0.xyzw, cb1[10].xyzw  // r3.z <- vout.PosH.z
+                dp4 r3.w, r0.xyzw, cb1[11].xyzw  // r3.w <- vout.PosH.w
                 
                 #line 67
                 mov r0.xy, v2.xyxx
                 mov r0.zw, l(0,0,0,1.000000)
-                dp4 r4.x, r0.xyzw, cb0[12].xyzw  // r4.x <- vout.Tex.x
-                dp4 r4.y, r0.xyzw, cb0[13].xyzw  // r4.y <- vout.Tex.y
+                dp4 r4.x, r0.xyzw, cb1[12].xyzw  // r4.x <- vout.Tex.x
+                dp4 r4.y, r0.xyzw, cb1[13].xyzw  // r4.y <- vout.Tex.y
                 
                 #line 69
                 mov o0.xyzw, r3.xyzw
@@ -2166,7 +2166,7 @@ fxgroup
                 //
                 // Name                                 Type  Format         Dim      HLSL Bind  Count
                 // ------------------------------ ---------- ------- ----------- -------------- ------
-                // cbPerObject                       cbuffer      NA          NA            cb0      1 
+                // cbPerObject                       cbuffer      NA          NA            cb1      1 
                 //
                 //
                 //
@@ -2190,7 +2190,7 @@ fxgroup
                 //
                 vs_5_0
                 dcl_globalFlags refactoringAllowed | skipOptimization
-                dcl_constantbuffer CB0[14], immediateIndexed
+                dcl_constantbuffer CB1[14], immediateIndexed
                 dcl_input v0.xyz
                 dcl_input v1.xyz
                 dcl_input v2.xy
@@ -2212,26 +2212,26 @@ fxgroup
                 #line 60 "C:\Users\yixin\Desktop\Introduction-to-3D-Game-Programming-With-DirectX11\Chapter 8 Texturing\Crate\FX\Basic.fx"
                 mov r0.xyz, v0.xyzx
                 mov r0.w, l(1.000000)
-                dp4 r1.x, r0.xyzw, cb0[0].xyzw  // r1.x <- vout.PosW.x
-                dp4 r1.y, r0.xyzw, cb0[1].xyzw  // r1.y <- vout.PosW.y
-                dp4 r1.z, r0.xyzw, cb0[2].xyzw  // r1.z <- vout.PosW.z
+                dp4 r1.x, r0.xyzw, cb1[0].xyzw  // r1.x <- vout.PosW.x
+                dp4 r1.y, r0.xyzw, cb1[1].xyzw  // r1.y <- vout.PosW.y
+                dp4 r1.z, r0.xyzw, cb1[2].xyzw  // r1.z <- vout.PosW.z
                 
                 #line 61
-                dp3 r2.x, v1.xyzx, cb0[4].xyzx  // r2.x <- vout.NormalW.x
-                dp3 r2.y, v1.xyzx, cb0[5].xyzx  // r2.y <- vout.NormalW.y
-                dp3 r2.z, v1.xyzx, cb0[6].xyzx  // r2.z <- vout.NormalW.z
+                dp3 r2.x, v1.xyzx, cb1[4].xyzx  // r2.x <- vout.NormalW.x
+                dp3 r2.y, v1.xyzx, cb1[5].xyzx  // r2.y <- vout.NormalW.y
+                dp3 r2.z, v1.xyzx, cb1[6].xyzx  // r2.z <- vout.NormalW.z
                 
                 #line 64
-                dp4 r3.x, r0.xyzw, cb0[8].xyzw  // r3.x <- vout.PosH.x
-                dp4 r3.y, r0.xyzw, cb0[9].xyzw  // r3.y <- vout.PosH.y
-                dp4 r3.z, r0.xyzw, cb0[10].xyzw  // r3.z <- vout.PosH.z
-                dp4 r3.w, r0.xyzw, cb0[11].xyzw  // r3.w <- vout.PosH.w
+                dp4 r3.x, r0.xyzw, cb1[8].xyzw  // r3.x <- vout.PosH.x
+                dp4 r3.y, r0.xyzw, cb1[9].xyzw  // r3.y <- vout.PosH.y
+                dp4 r3.z, r0.xyzw, cb1[10].xyzw  // r3.z <- vout.PosH.z
+                dp4 r3.w, r0.xyzw, cb1[11].xyzw  // r3.w <- vout.PosH.w
                 
                 #line 67
                 mov r0.xy, v2.xyxx
                 mov r0.zw, l(0,0,0,1.000000)
-                dp4 r4.x, r0.xyzw, cb0[12].xyzw  // r4.x <- vout.Tex.x
-                dp4 r4.y, r0.xyzw, cb0[13].xyzw  // r4.y <- vout.Tex.y
+                dp4 r4.x, r0.xyzw, cb1[12].xyzw  // r4.x <- vout.Tex.x
+                dp4 r4.y, r0.xyzw, cb1[13].xyzw  // r4.y <- vout.Tex.y
                 
                 #line 69
                 mov o0.xyzw, r3.xyzw

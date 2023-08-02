@@ -1,7 +1,7 @@
 //***************************************************************************************
 // Effects.cpp by Frank Luna (C) 2011 All Rights Reserved.
 //***************************************************************************************
-
+/*
 #include "Effects.h"
 
 #pragma region Effect
@@ -70,3 +70,4 @@ void Effects::DestroyAll()
 	SafeDelete(BasicFX);
 }
 #pragma endregion
+*/
