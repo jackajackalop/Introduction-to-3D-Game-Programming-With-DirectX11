@@ -27,15 +27,7 @@ cbuffer cbPerObject : register(b1)
 
 // Nonnumeric values cannot be added to a cbuffer.
 Texture2D gDiffuseMap;
-
-SamplerState samAnisotropic
-{
-	Filter = ANISOTROPIC;
-	MaxAnisotropy = 4;
-
-	AddressU = WRAP;
-	AddressV = WRAP;
-};
+SamplerState s0;
 
 struct VertexIn
 {
@@ -69,8 +61,10 @@ VertexOut VS(VertexIn vin)
 	return vout;
 }
  
-float4 PS(VertexOut pin, uniform int gLightCount, uniform bool gUseTexure) : SV_Target
+float4 PS(VertexOut pin) : SV_Target
 {
+	int gLightCount = 2;
+	bool gUseTexture = true;
 	// Interpolating normal can unnormalize it, so normalize it.
     pin.NormalW = normalize(pin.NormalW);
 
@@ -85,10 +79,10 @@ float4 PS(VertexOut pin, uniform int gLightCount, uniform bool gUseTexure) : SV_
 	
     // Default to multiplicative identity.
     float4 texColor = float4(1, 1, 1, 1);
-    if(gUseTexure)
+    if(gUseTexture)
 	{
 		// Sample texture.
-		texColor = gDiffuseMap.Sample( samAnisotropic, pin.Tex );
+		texColor = gDiffuseMap.Sample(s0, pin.Tex );
 	}
 	 
 	//
@@ -117,81 +111,11 @@ float4 PS(VertexOut pin, uniform int gLightCount, uniform bool gUseTexure) : SV_
 		}
 
 		// Modulate with late add.
-		litColor = texColor*(ambient + diffuse) + spec;
+		litColor = texColor *(ambient + diffuse) + spec;
 	}
 
 	// Common to take alpha from diffuse material and texture.
 	litColor.a = gMaterial.Diffuse.a * texColor.a;
 
     return litColor;
-}
-
-technique11 Light1
-{
-    pass P0
-    {
-        SetVertexShader( CompileShader( vs_5_0, VS() ) );
-		SetGeometryShader( NULL );
-        SetPixelShader( CompileShader( ps_5_0, PS(1, false) ) );
-    }
-}
-
-technique11 Light2
-{
-    pass P0
-    {
-        SetVertexShader( CompileShader( vs_5_0, VS() ) );
-		SetGeometryShader( NULL );
-        SetPixelShader( CompileShader( ps_5_0, PS(2, false) ) );
-    }
-}
-
-technique11 Light3
-{
-    pass P0
-    {
-        SetVertexShader( CompileShader( vs_5_0, VS() ) );
-		SetGeometryShader( NULL );
-        SetPixelShader( CompileShader( ps_5_0, PS(3, false) ) );
-    }
-}
-
-technique11 Light0Tex
-{
-    pass P0
-    {
-        SetVertexShader( CompileShader( vs_5_0, VS() ) );
-		SetGeometryShader( NULL );
-        SetPixelShader( CompileShader( ps_5_0, PS(0, true) ) );
-    }
-}
-
-technique11 Light1Tex
-{
-    pass P0
-    {
-        SetVertexShader( CompileShader( vs_5_0, VS() ) );
-		SetGeometryShader( NULL );
-        SetPixelShader( CompileShader( ps_5_0, PS(1, true) ) );
-    }
-}
-
-technique11 Light2Tex
-{
-    pass P0
-    {
-        SetVertexShader( CompileShader( vs_5_0, VS() ) );
-		SetGeometryShader( NULL );
-        SetPixelShader( CompileShader( ps_5_0, PS(2, true) ) );
-    }
-}
-
-technique11 Light3Tex
-{
-    pass P0
-    {
-        SetVertexShader( CompileShader( vs_5_0, VS() ) );
-		SetGeometryShader( NULL );
-        SetPixelShader( CompileShader( ps_5_0, PS(3, true) ) );
-    }
 }

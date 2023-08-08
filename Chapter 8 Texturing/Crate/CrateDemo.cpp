@@ -72,6 +72,7 @@ private:
 	ID3D11PixelShader* mPS;
 	ID3D11Buffer* perFrameBuffer;
 	ID3D11Buffer* perObjectBuffer;
+	ID3D11SamplerState* samplerState;
 	ID3D10Blob* mVSBlob;
 
 	ID3D11InputLayout* mInputLayout;
@@ -178,8 +179,8 @@ bool CrateApp::Init()
 
 
 	size_t maxsize = D3DX11_FROM_FILE;
-	D3D11_USAGE usage = D3D11_USAGE_STAGING;
-	unsigned int bindFlags = 0;
+	D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
+	unsigned int bindFlags = D3D11_BIND_SHADER_RESOURCE;
 	unsigned int cpuAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 	unsigned int miscFlags = 0;
 	DirectX::DX11::DDS_LOADER_FLAGS loadFlags = DirectX::DX11::DDS_LOADER_DEFAULT;
@@ -224,6 +225,22 @@ bool CrateApp::Init()
 	HR(md3dDevice->CreateInputLayout(vertexDesc, 3, mVSBlob->GetBufferPointer(),
 		mVSBlob->GetBufferSize(), &mInputLayout));
 
+	// Create the sampler
+	D3D11_SAMPLER_DESC samplerDesc = {
+		D3D11_FILTER_ANISOTROPIC, 
+		D3D11_TEXTURE_ADDRESS_WRAP, 
+		D3D11_TEXTURE_ADDRESS_WRAP, 
+		D3D11_TEXTURE_ADDRESS_WRAP,
+		0,
+		4,
+		D3D11_COMPARISON_NEVER,
+		{0.0f, 0.0f, 0.0f, 1.0f},
+		0,
+		D3D11_FLOAT32_MAX
+	};
+
+	HR(md3dDevice->CreateSamplerState(&samplerDesc, &samplerState));
+
 	return true;
 }
 
@@ -267,7 +284,12 @@ void CrateApp::DrawScene()
 	DirectX::XMMATRIX view  = XMLoadFloat4x4(&mView);
 	DirectX::XMMATRIX proj  = XMLoadFloat4x4(&mProj);
 	DirectX::XMMATRIX viewProj = view*proj;
-	std::copy(perFrameStruct.gDirLights, perFrameStruct.gDirLights + 3, mDirLights);
+
+	for (int i = 0; i < 2; i++)
+	{
+		perFrameStruct.gDirLights[i] = mDirLights[i];
+	}
+
 	perFrameStruct.gEyePosW.x = mEyePosW.x;
 	perFrameStruct.gEyePosW.y = mEyePosW.y;
 	perFrameStruct.gEyePosW.z = mEyePosW.z;
@@ -299,6 +321,8 @@ void CrateApp::DrawScene()
 
 	md3dImmediateContext->VSSetShader(mVS, nullptr, 0);
 	md3dImmediateContext->PSSetShader(mPS, nullptr, 0);
+	md3dImmediateContext->PSSetShaderResources(0, 1, &mDiffuseMapSRV);
+	md3dImmediateContext->PSSetSamplers(0, 1, &samplerState);
 
 	md3dImmediateContext->VSSetConstantBuffers(0, 1, &perFrameBuffer);
 	md3dImmediateContext->VSSetConstantBuffers(1, 1, &perObjectBuffer);
