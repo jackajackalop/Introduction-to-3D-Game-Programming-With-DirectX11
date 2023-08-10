@@ -22,9 +22,11 @@ cbuffer cbPerObject : register(b1)
 }
 
 //
-// 2 local object(s)
+// 4 local object(s)
 //
-Texture2D gDiffuseMap;
+Texture2D flare;
+Texture2D flarealpha;
+Texture2D fireanim;
 SamplerState s0
 {
 };

@@ -16,6 +16,7 @@
 #include "LightHelper.h"
 #include "Vertex.h"
 #include <DDSTextureLoader.h>
+#include <WICTextureLoader.h>
 #include <d3dcompiler.h>
 
 struct CrateDemoPerFrameStruct
@@ -77,7 +78,9 @@ private:
 
 	ID3D11InputLayout* mInputLayout;
 	
-	ID3D11ShaderResourceView* mDiffuseMapSRV;
+	ID3D11ShaderResourceView* mFlareSRV;
+	ID3D11ShaderResourceView* mFlareAlphaSRV;
+	ID3D11ShaderResourceView* mFireAnimSRV[120];
 
 	DirectionalLight mDirLights[3];
 	Material mBoxMat;
@@ -87,6 +90,9 @@ private:
 
 	DirectX::XMFLOAT4X4 mView;
 	DirectX::XMFLOAT4X4 mProj;
+
+	float rotationDegrees = 0.0f;
+	int frame = 0;
 
 	int mBoxVertexOffset;
 	UINT mBoxIndexOffset;
@@ -119,8 +125,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
  
 
 CrateApp::CrateApp(HINSTANCE hInstance)
-: D3DApp(hInstance), mBoxVB(0), mBoxIB(0), mDiffuseMapSRV(0), mEyePosW(0.0f, 0.0f, 0.0f), 
-  mTheta(1.3f*MathHelper::Pi), mPhi(0.4f*MathHelper::Pi), mRadius(2.5f)
+: D3DApp(hInstance), mBoxVB(0), mBoxIB(0), mFlareSRV(0), mFlareAlphaSRV(0), mEyePosW(0.0f, 0.0f, 0.0f),
+  mTheta(1.3f*MathHelper::Pi), mPhi(0.4f*MathHelper::Pi), mRadius(2.5f), rotationDegrees(0)
 {
 	mMainWndCaption = L"Crate Demo";
 	
@@ -152,7 +158,8 @@ CrateApp::~CrateApp()
 {
 	ReleaseCOM(mBoxVB);
 	ReleaseCOM(mBoxIB);
-	ReleaseCOM(mDiffuseMapSRV);
+	ReleaseCOM(mFlareSRV);
+	ReleaseCOM(mFlareAlphaSRV);
 	ReleaseCOM(mVS);
 	ReleaseCOM(mPS);
 	ReleaseCOM(perFrameBuffer);
@@ -185,8 +192,22 @@ bool CrateApp::Init()
 	unsigned int miscFlags = 0;
 	DirectX::DX11::DDS_LOADER_FLAGS loadFlags = DirectX::DX11::DDS_LOADER_DEFAULT;
 
-	HR(CreateDDSTextureFromFileEx(md3dDevice, L"Textures/WoodCrate01.dds", maxsize, usage, bindFlags, cpuAccessFlags, miscFlags,
-		loadFlags, nullptr, &mDiffuseMapSRV, 0));
+	HR(CreateDDSTextureFromFileEx(md3dDevice, L"Textures/flare.dds", maxsize, usage, bindFlags, cpuAccessFlags, miscFlags,
+		loadFlags, nullptr, &mFlareSRV, 0));
+
+	HR(CreateDDSTextureFromFileEx(md3dDevice, L"Textures/flarealpha.dds", maxsize, usage, bindFlags, cpuAccessFlags, miscFlags,
+		loadFlags, nullptr, &mFlareAlphaSRV, 0));
+
+	for (int i = 1; i <= 120; i++)
+	{
+		std::string str = std::to_string(i);
+		int precision = 3 - min(3, str.size());
+		str.insert(0, precision, '0');
+		std::string filename = "FireAnim/Fire" + str + ".bmp";
+		std::wstring widestr = std::wstring(filename.begin(), filename.end());
+		HR(DirectX::CreateWICTextureFromFileEx(md3dDevice, widestr.c_str(), maxsize, usage, bindFlags, cpuAccessFlags, miscFlags,
+			DirectX::WIC_LOADER_DEFAULT, nullptr, &mFireAnimSRV[i-1]));
+	}
 
 	BuildGeometryBuffers();
 
@@ -227,10 +248,21 @@ bool CrateApp::Init()
 
 	// Create the sampler
 	D3D11_SAMPLER_DESC samplerDesc = {
+		// D3D11_FILTER_MIN_MAG_MIP_POINT,
+		// D3D11_FILTER_MIN_MAG_MIP_LINEAR,
 		D3D11_FILTER_ANISOTROPIC, 
+		/*D3D11_TEXTURE_ADDRESS_MIRROR,
+		D3D11_TEXTURE_ADDRESS_MIRROR,
+		D3D11_TEXTURE_ADDRESS_MIRROR,*/
+		/*D3D11_TEXTURE_ADDRESS_CLAMP,
+		D3D11_TEXTURE_ADDRESS_CLAMP,
+		D3D11_TEXTURE_ADDRESS_CLAMP,*/
+		D3D11_TEXTURE_ADDRESS_BORDER,
+		D3D11_TEXTURE_ADDRESS_BORDER,
+		D3D11_TEXTURE_ADDRESS_BORDER,
+		/*D3D11_TEXTURE_ADDRESS_WRAP, 
 		D3D11_TEXTURE_ADDRESS_WRAP, 
-		D3D11_TEXTURE_ADDRESS_WRAP, 
-		D3D11_TEXTURE_ADDRESS_WRAP,
+		D3D11_TEXTURE_ADDRESS_WRAP,*/
 		0,
 		4,
 		D3D11_COMPARISON_NEVER,
@@ -268,6 +300,9 @@ void CrateApp::UpdateScene(float dt)
 
 	DirectX::XMMATRIX V = DirectX::XMMatrixLookAtLH(pos, target, up);
 	XMStoreFloat4x4(&mView, V);
+
+	// rotationDegrees += 0.001f;
+	frame = (frame + 1) % 1200;
 }
 
 void CrateApp::DrawScene()
@@ -309,10 +344,13 @@ void CrateApp::DrawScene()
 	DirectX::XMMATRIX world = XMLoadFloat4x4(&mBoxWorld);
 	DirectX::XMMATRIX worldInvTranspose = MathHelper::InverseTranspose(world);
 	DirectX::XMMATRIX worldViewProj = world*view*proj;
+	DirectX::XMMATRIX centerTex = DirectX::XMMatrixTranslation(-0.5f, -0.5f, 0);
+	DirectX::XMMATRIX unCenterTex = DirectX::XMMatrixTranslation(0.5f, 0.5f, 0);
+	DirectX::XMMATRIX texRotation = XMLoadFloat4x4(&mTexTransform) * centerTex * DirectX::XMMatrixRotationZ(rotationDegrees) * unCenterTex;
 	perObjectStruct.World = DirectX::XMMatrixTranspose(world);
 	perObjectStruct.WorldInvTranspose = DirectX::XMMatrixTranspose(worldInvTranspose);
 	perObjectStruct.WorldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
-	perObjectStruct.TexTransform = DirectX::XMMatrixTranspose(XMLoadFloat4x4(&mTexTransform));
+	perObjectStruct.TexTransform = DirectX::XMMatrixTranspose(texRotation);
 	perObjectStruct.Material = mBoxMat;
 
 	md3dImmediateContext->Map(perObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
@@ -321,7 +359,9 @@ void CrateApp::DrawScene()
 
 	md3dImmediateContext->VSSetShader(mVS, nullptr, 0);
 	md3dImmediateContext->PSSetShader(mPS, nullptr, 0);
-	md3dImmediateContext->PSSetShaderResources(0, 1, &mDiffuseMapSRV);
+	md3dImmediateContext->PSSetShaderResources(0, 1, &mFlareSRV);
+	md3dImmediateContext->PSSetShaderResources(1, 1, &mFlareAlphaSRV);
+	md3dImmediateContext->PSSetShaderResources(2, 1, &mFireAnimSRV[frame/10]);
 	md3dImmediateContext->PSSetSamplers(0, 1, &samplerState);
 
 	md3dImmediateContext->VSSetConstantBuffers(0, 1, &perFrameBuffer);

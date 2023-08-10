@@ -26,7 +26,9 @@ cbuffer cbPerObject : register(b1)
 }; 
 
 // Nonnumeric values cannot be added to a cbuffer.
-Texture2D gDiffuseMap;
+Texture2D flare : register(t0);
+Texture2D flarealpha : register(t1);
+Texture2D fireanim : register(t2);
 SamplerState s0;
 
 struct VertexIn
@@ -79,10 +81,14 @@ float4 PS(VertexOut pin) : SV_Target
 	
     // Default to multiplicative identity.
     float4 texColor = float4(1, 1, 1, 1);
+	float2 modifiedTex = pin.Tex;
+	// modifiedTex = float2(-0.33 + pin.Tex.x * 3, -0.33 + pin.Tex.y * 3);
     if(gUseTexture)
 	{
 		// Sample texture.
-		texColor = gDiffuseMap.Sample(s0, pin.Tex );
+		texColor = fireanim.Sample(s0, modifiedTex);
+		// texColor = flarealpha.Sample(s0, modifiedTex);
+		// texColor = texColor * flare.Sample(s0, modifiedTex);
 	}
 	 
 	//
