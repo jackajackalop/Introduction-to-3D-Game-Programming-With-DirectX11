@@ -6,7 +6,7 @@
 
 #include "LightHelper.fx"
  
-cbuffer cbPerFrame
+cbuffer cbPerFrame : register(b0)
 {
 	DirectionalLight gDirLights[3];
 	float3 gEyePosW;
@@ -16,7 +16,7 @@ cbuffer cbPerFrame
 	float4 gFogColor;
 };
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register(b1)
 {
 	float4x4 gWorld;
 	float4x4 gWorldInvTranspose;
@@ -39,10 +39,6 @@ struct VertexIn
 	float3 PosL    : POSITION;
 	float3 NormalL : NORMAL;
 	float2 Tex     : TEXCOORD;
-	int lightCount : LIGHTCOUNT;
-	bool useTexture : USETEXTURE;
-	bool alphaClip : ALPHACLIP;
-	bool fogEnabled : FOGENABLED;
 };
 
 struct VertexOut
@@ -51,10 +47,6 @@ struct VertexOut
     float3 PosW    : POSITION;
     float3 NormalW : NORMAL;
 	float2 Tex     : TEXCOORD;
-	int lightCount : LIGHTCOUNT;
-	bool useTexture : USETEXTURE;
-	bool alphaClip : ALPHACLIP;
-	bool fogEnabled : FOGENABLED;
 };
 
 VertexOut VS(VertexIn vin)

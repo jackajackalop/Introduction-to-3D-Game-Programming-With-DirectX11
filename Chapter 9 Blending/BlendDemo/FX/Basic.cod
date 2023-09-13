@@ -3,7 +3,7 @@
 //
 // 2 local buffer(s)
 //
-cbuffer cbPerFrame
+cbuffer cbPerFrame : register(b0)
 {
     DirectionalLight gDirLights[3];     // Offset:    0, size:  192
     float3  gEyePosW;                   // Offset:  192, size:   12
@@ -12,7 +12,7 @@ cbuffer cbPerFrame
     float4  gFogColor;                  // Offset:  224, size:   16
 }
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register(b1)
 {
     float4x4 gWorld;                    // Offset:    0, size:   64
     float4x4 gWorldInvTranspose;        // Offset:   64, size:   64
