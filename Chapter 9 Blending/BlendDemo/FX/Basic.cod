@@ -1,0 +1,35 @@
+//
+// FX Version: fx_5_0
+//
+// 2 local buffer(s)
+//
+cbuffer cbPerFrame
+{
+    DirectionalLight gDirLights[3];     // Offset:    0, size:  192
+    float3  gEyePosW;                   // Offset:  192, size:   12
+    float   gFogStart;                  // Offset:  204, size:    4
+    float   gFogRange;                  // Offset:  208, size:    4
+    float4  gFogColor;                  // Offset:  224, size:   16
+}
+
+cbuffer cbPerObject
+{
+    float4x4 gWorld;                    // Offset:    0, size:   64
+    float4x4 gWorldInvTranspose;        // Offset:   64, size:   64
+    float4x4 gWorldViewProj;            // Offset:  128, size:   64
+    float4x4 gTexTransform;             // Offset:  192, size:   64
+    Material gMaterial;                 // Offset:  256, size:   64
+    int     lightCount;                 // Offset:  320, size:    4
+    bool    useTexture;                 // Offset:  324, size:    4
+    bool    alphaClip;                  // Offset:  328, size:    4
+    bool    fogEnabled;                 // Offset:  332, size:    4
+}
+
+//
+// 2 local object(s)
+//
+Texture2D gDiffuseMap;
+SamplerState samAnisotropic
+{
+};
+
