@@ -579,7 +579,10 @@ void BlendApp::DrawScene()
 	md3dImmediateContext->VSSetConstantBuffers(1, 1, &perObjectBuffer);
 	md3dImmediateContext->PSSetConstantBuffers(0, 1, &perFrameBuffer);
 	md3dImmediateContext->PSSetConstantBuffers(1, 1, &perObjectBuffer);
-	md3dImmediateContext->OMSetBlendState(RenderStates::TransparentBS, blendFactor, 0xffffffff);
+	md3dImmediateContext->OMSetBlendState(RenderStates::TransparentBS, blendFactor, 0x0000ffff);
+	//md3dImmediateContext->OMSetBlendState(RenderStates::NoRedGreenBS, blendFactor, 0xffffffff);
+	//md3dImmediateContext->OMSetBlendState(RenderStates::TransparentBS, blendFactor, 0xffffffff);
+	//md3dImmediateContext->OMSetBlendState(RenderStates::TransparentBS, blendFactor, 0xfffffffe);
 	md3dImmediateContext->DrawIndexed(3 * mWaves.TriangleCount(), 0, 0);
 
 	// Restore default blend state
