@@ -36,11 +36,12 @@ struct BlendDemoPerFrameStruct
 	BlendDemoPerFrameStruct() { ZeroMemory(this, sizeof(this)); }
 
 	DirectionalLight gDirLights[3];
-	DirectX::XMFLOAT4 gEyePosW;
+	DirectX::XMFLOAT3 gEyePosW;
+	float padding1;
 
 	float  gFogStart;
 	float  gFogRange;
-	DirectX::XMFLOAT2 padding;
+	DirectX::XMFLOAT2 padding2;
 
 	DirectX::XMFLOAT4 gFogColor;
 };
@@ -54,10 +55,9 @@ struct BlendDemoPerObjectStruct
 	DirectX::XMMATRIX WorldViewProj;
 	DirectX::XMMATRIX TexTransform;
 	Material Material;
-	int lightCount;
-	bool useTexture;
-	bool alphaClip;
-	bool fogEnabled;
+	int useTexture;
+	int alphaClip;
+	int fogEnabled;
 };
 
 class BlendApp : public D3DApp
@@ -130,11 +130,9 @@ private:
 	DirectX::XMFLOAT2 mWaterTexOffset;
 
 	RenderOptions mRenderOptions;
-	int landLightCount;
 	bool landUseTexture;
 	bool landAlphaClip;
 	bool landFogEnabled;
-	int boxLightCount;
 	bool boxUseTexture;
 	bool boxAlphaClip;
 	bool boxFogEnabled;
@@ -438,7 +436,7 @@ void BlendApp::DrawScene()
 	DirectX::XMMATRIX view  = XMLoadFloat4x4(&mView);
 	DirectX::XMMATRIX proj  = XMLoadFloat4x4(&mProj);
 	DirectX::XMMATRIX viewProj = view*proj;
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 3; i++)
 	{
 		perFrameStruct.gDirLights[i] = mDirLights[i];
 	}
@@ -459,31 +457,25 @@ void BlendApp::DrawScene()
 	switch (mRenderOptions)
 	{
 	case RenderOptions::Lighting:
-		boxLightCount = 3;
 		boxUseTexture = false;
 		boxAlphaClip = false;
 		boxFogEnabled = false;
-		landLightCount = 3;
 		landUseTexture = false;
 		landAlphaClip = false;
 		landFogEnabled = false;
 		break;
 	case RenderOptions::Textures:
-		boxLightCount = 3;
 		boxUseTexture = true;
 		boxAlphaClip = true;
 		boxFogEnabled = true;
-		landLightCount = 3;
 		landUseTexture = true;
 		landAlphaClip = false;
 		landFogEnabled = false;
 		break;
 	case RenderOptions::TexturesAndFog:
-		boxLightCount = 3;
 		boxUseTexture = true;
 		boxAlphaClip = true;
 		boxFogEnabled = true;
-		landLightCount = 3;
 		landUseTexture = true;
 		landAlphaClip = false;
 		landFogEnabled = true;
@@ -504,8 +496,8 @@ void BlendApp::DrawScene()
 	perObjectStruct.WorldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
 	perObjectStruct.TexTransform = DirectX::XMMatrixTranspose(DirectX::XMMatrixIdentity());
 	perObjectStruct.Material = mBoxMat;
-	perObjectStruct.lightCount = boxLightCount;
 	perObjectStruct.useTexture = boxUseTexture;
+	perObjectStruct.alphaClip = boxAlphaClip;
 	perObjectStruct.fogEnabled = boxFogEnabled;
 
 	md3dImmediateContext->Map(perObjectBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
@@ -542,7 +534,7 @@ void BlendApp::DrawScene()
 	perObjectStruct.WorldViewProj = DirectX::XMMatrixTranspose(worldViewProj);
 	perObjectStruct.TexTransform = DirectX::XMMatrixTranspose(DirectX::XMLoadFloat4x4(&mGrassTexTransform));
 	perObjectStruct.Material = mLandMat;
-	perObjectStruct.lightCount = landLightCount;
+	perObjectStruct.alphaClip = landAlphaClip;
 	perObjectStruct.useTexture = landUseTexture;
 	perObjectStruct.fogEnabled = landFogEnabled;
 

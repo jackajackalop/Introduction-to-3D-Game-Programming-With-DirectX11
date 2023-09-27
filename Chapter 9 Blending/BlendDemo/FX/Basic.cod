@@ -7,8 +7,10 @@ cbuffer cbPerFrame : register(b0)
 {
     DirectionalLight gDirLights[3];     // Offset:    0, size:  192
     float3  gEyePosW;                   // Offset:  192, size:   12
-    float   gFogStart;                  // Offset:  204, size:    4
-    float   gFogRange;                  // Offset:  208, size:    4
+    float   padding1;                   // Offset:  204, size:    4
+    float   gFogStart;                  // Offset:  208, size:    4
+    float   gFogRange;                  // Offset:  212, size:    4
+    float2  padding2;                   // Offset:  216, size:    8
     float4  gFogColor;                  // Offset:  224, size:   16
 }
 
@@ -19,10 +21,9 @@ cbuffer cbPerObject : register(b1)
     float4x4 gWorldViewProj;            // Offset:  128, size:   64
     float4x4 gTexTransform;             // Offset:  192, size:   64
     Material gMaterial;                 // Offset:  256, size:   64
-    int     lightCount;                 // Offset:  320, size:    4
-    bool    useTexture;                 // Offset:  324, size:    4
-    bool    alphaClip;                  // Offset:  328, size:    4
-    bool    fogEnabled;                 // Offset:  332, size:    4
+    bool    useTexture;                 // Offset:  320, size:    4
+    bool    alphaClip;                  // Offset:  324, size:    4
+    bool    fogEnabled;                 // Offset:  328, size:    4
 }
 
 //
