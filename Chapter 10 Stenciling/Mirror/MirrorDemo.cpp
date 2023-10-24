@@ -513,6 +513,7 @@ void MirrorApp::DrawScene()
 		DirectX::XMVECTOR reflectedLightDir = XMVector3TransformNormal(lightDir, R);
 		DirectX::XMStoreFloat3(&mDirLights[i].Direction, reflectedLightDir);
 		perFrameStruct.gDirLights[i] = mDirLights[i];
+		mDirLights[i].Direction = oldLightDirections[i];
 	}
 
 	md3dImmediateContext->Map(perFrameBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &cbData);
